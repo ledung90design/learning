@@ -1,0 +1,2714 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TingLi - Luyện Nghe Tiếng Trung Mỗi Ngày</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts: Inter & Noto Sans SC -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        chinese: ['"Noto Sans SC"', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            500: '#f43f5e',
+                            600: '#e11d48',
+                            700: '#be123c',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        
+        .sentence-active {
+            background-color: #fff1f2;
+            border-left: 4px solid #e11d48;
+            transform: scale(1.005);
+        }
+        
+        .pulse-wave {
+            animation: pulseWave 1.5s infinite ease-in-out;
+        }
+        @keyframes pulseWave {
+            0%, 100% { transform: scaleY(0.4); }
+            50% { transform: scaleY(1); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
+
+    <!-- Top Navigation Bar -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <!-- Brand Logo -->
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="app.resetFilter()">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-amber-500 flex items-center justify-center text-white shadow-md">
+                    <i class="fa-solid fa-headphones-simple text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-none text-slate-900 flex items-center gap-1.5">
+                        TingLi <span class="text-xs font-chinese bg-brand-100 text-brand-700 px-2 py-0.5 rounded-full font-semibold">听力每日练</span>
+                    </h1>
+                    <p class="text-xs text-slate-500 mt-0.5">Luyện nghe tiếng Trung 1-5 phút mỗi ngày</p>
+                </div>
+            </div>
+
+            <!-- Stats & Actions -->
+            <div class="flex items-center space-x-3 sm:space-x-4">
+                <!-- Daily Streak -->
+                <div class="hidden sm:flex items-center space-x-2 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl text-amber-800 text-sm font-medium">
+                    <i class="fa-solid fa-fire text-amber-500"></i>
+                    <span>Chuỗi <strong id="streakCount">0</strong> ngày</span>
+                </div>
+                
+                <!-- Progress Counter -->
+                <div class="flex items-center space-x-2 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl text-emerald-800 text-sm font-medium">
+                    <i class="fa-solid fa-circle-check text-emerald-500"></i>
+                    <span>Đã học: <strong id="completedCount">0</strong>/<span id="totalCount">0</span></span>
+                </div>
+
+                <button onclick="app.openProgressStats()" class="bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-800 text-sm font-semibold px-3.5 py-2 rounded-xl shadow-sm transition flex items-center space-x-2">
+                    <i class="fa-solid fa-chart-line text-indigo-500"></i>
+                    <span class="hidden md:inline">Tiến độ</span>
+                </button>
+                <button onclick="app.openVocabBank()" class="bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 text-sm font-semibold px-3.5 py-2 rounded-xl shadow-sm transition flex items-center space-x-2">
+                    <i class="fa-solid fa-book-bookmark text-amber-500"></i>
+                    <span class="hidden md:inline">Kho từ vựng</span>
+                    <span id="savedVocabCount" class="bg-amber-500 text-white text-[10px] min-w-5 h-5 px-1 rounded-full flex items-center justify-center">0</span>
+                </button>
+                <!-- AI Lesson Generator Button -->
+                <button onclick="app.openAIModal()" class="bg-slate-900 hover:bg-slate-800 text-white text-sm font-medium px-3.5 py-2 rounded-xl shadow-sm transition flex items-center space-x-2">
+                    <i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i>
+                    <span class="hidden md:inline">Tạo bài nghe AI</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
+        
+        <!-- Filter & Search Bar -->
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+                <!-- Level Filter -->
+                <div class="md:col-span-5 flex items-center space-x-1.5 overflow-x-auto pb-1 md:pb-0">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 mr-1 whitespace-nowrap">Cấp độ:</span>
+                    <button onclick="app.setLevelFilter('all')" data-level="all" class="level-btn active-filter px-3 py-1.5 rounded-xl text-xs font-semibold transition whitespace-nowrap bg-brand-600 text-white shadow-sm">
+                        Tất cả
+                    </button>
+                    <button onclick="app.setLevelFilter('beginner')" data-level="beginner" class="level-btn px-3 py-1.5 rounded-xl text-xs font-semibold transition whitespace-nowrap bg-slate-100 text-slate-600 hover:bg-slate-200">
+                        🌱 Sơ cấp (HSK 1-2)
+                    </button>
+                    <button onclick="app.setLevelFilter('intermediate')" data-level="intermediate" class="level-btn px-3 py-1.5 rounded-xl text-xs font-semibold transition whitespace-nowrap bg-slate-100 text-slate-600 hover:bg-slate-200">
+                        🚀 Trung cấp (HSK 3-4)
+                    </button>
+                    <button onclick="app.setLevelFilter('advanced')" data-level="advanced" class="level-btn px-3 py-1.5 rounded-xl text-xs font-semibold transition whitespace-nowrap bg-slate-100 text-slate-600 hover:bg-slate-200">
+                        👑 Cao cấp (HSK 5-6)
+                    </button>
+                </div>
+
+                <!-- Topic Filter -->
+                <div class="md:col-span-4 flex items-center space-x-2">
+                    <label for="topicSelect" class="text-xs font-semibold uppercase tracking-wider text-slate-400 whitespace-nowrap">Chủ đề:</label>
+                    <select id="topicSelect" onchange="app.setTopicFilter(this.value)" class="w-full bg-slate-100 border-0 rounded-xl px-3 py-2 text-sm text-slate-700 font-medium focus:ring-2 focus:ring-brand-500 outline-none">
+                        <option value="all">Tất cả chủ đề</option>
+                        <option value="Giao tiếp hàng ngày">👋 Giao tiếp hàng ngày</option>
+                        <option value="Ẩm thực & Mua sắm">🍜 Ẩm thực & Mua sắm</option>
+                        <option value="Du lịch & Di chuyển">✈️ Du lịch & Di chuyển</option>
+                        <option value="Công sở & Kinh doanh">💼 Công sở & Kinh doanh</option>
+                        <option value="Văn hóa & Xã hội">🏮 Văn hóa & Xã hội</option>
+                    </select>
+                </div>
+
+                <!-- Duration Filter -->
+                <div class="md:col-span-3 flex items-center space-x-2">
+                    <label for="durationSelect" class="text-xs font-semibold uppercase tracking-wider text-slate-400 whitespace-nowrap">Thời lượng:</label>
+                    <select id="durationSelect" onchange="app.setDurationFilter(this.value)" class="w-full bg-slate-100 border-0 rounded-xl px-3 py-2 text-sm text-slate-700 font-medium focus:ring-2 focus:ring-brand-500 outline-none">
+                        <option value="all">1 - 5 phút (Tất cả)</option>
+                        <option value="short">⚡ Ngắn (1 - 2 phút)</option>
+                        <option value="medium">⏱️ Vừa (2 - 3.5 phút)</option>
+                        <option value="long">🔥 Dài (3.5 - 5 phút)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Workspace Grid: Left Lesson List (4 cols) + Right Player & Interactive Transcript (8 cols) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            
+            <!-- Left Column: Lesson List -->
+            <div class="lg:col-span-4 space-y-3">
+                <div class="flex items-center justify-between px-1">
+                    <h2 class="text-sm font-bold uppercase tracking-wider text-slate-500">Danh sách bài học (<span id="filteredLessonCount">0</span>)</h2>
+                    <span class="text-xs text-slate-400">Sắp xếp: Dễ → Khó</span>
+                </div>
+
+                <!-- Quick Search Input for 100 Lessons -->
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input type="text" id="searchLessonInput" oninput="app.setSearchQuery(this.value)" placeholder="Tìm tên bài học (중/Việt) trong 100 bài..." class="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-700 focus:ring-2 focus:ring-brand-500 outline-none shadow-sm">
+                </div>
+                
+                <div id="lessonListContainer" class="space-y-2.5 max-h-[70vh] overflow-y-auto pr-1">
+                    <!-- Dynamic Lesson Cards injected here -->
+                </div>
+            </div>
+
+            <!-- Right Column: Active Lesson Player, Subtitles, Vocab & Quiz -->
+            <div class="lg:col-span-8 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+                
+                <!-- Lesson Header Banner -->
+                <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-brand-900 text-white p-6 relative">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <div class="flex items-center space-x-2">
+                            <span id="activeLevelBadge" class="px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wide bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                                Sơ cấp • HSK 1
+                            </span>
+                            <span id="activeTopicBadge" class="px-2.5 py-1 rounded-lg text-xs font-medium bg-white/10 text-slate-200">
+                                🍜 Ẩm thực & Mua sắm
+                            </span>
+                        </div>
+                        <div class="flex items-center space-x-3 text-xs text-slate-300">
+                            <span class="flex items-center gap-1"><i class="fa-regular fa-clock text-brand-400"></i> <span id="activeDuration">1 phút 30 giây</span></span>
+                            <button onclick="app.toggleLessonComplete()" id="completeLessonBtn" class="px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white font-medium transition flex items-center gap-1.5">
+                                <i class="fa-regular fa-circle-check"></i> <span>Đánh dấu đã học</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <h2 id="activeTitleZh" class="text-2xl sm:text-3xl font-bold font-chinese tracking-wide mb-1">在咖啡店点单</h2>
+                    <p id="activeTitleVi" class="text-slate-300 text-sm sm:text-base font-medium">Gọi đồ uống tại quán cà phê</p>
+
+                    <!-- Audio Player Controller -->
+                    <div class="mt-6 bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/15">
+                        <!-- Progress Bar & Voice Engine Selector -->
+                        <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-300 mb-2">
+                            <span id="currentTimeDisplay" class="font-semibold text-white">Câu 1 / 6</span>
+                            <div class="flex items-center flex-wrap gap-2">
+                                <span id="voiceStatusDisplay" class="flex items-center gap-1.5 text-amber-300 font-medium">
+                                    <i class="fa-solid fa-volume-high"></i> Chuẩn Phổ Thông (普通话)
+                                </span>
+                                <select id="voiceSelector" onchange="app.selectSystemVoice(this.value)" title="Chọn giọng đọc tiếng Trung trên thiết bị" class="bg-slate-900/80 border border-white/20 text-white text-[11px] rounded-lg px-2 py-1 outline-none focus:border-amber-400 max-w-[210px] truncate">
+                                    <option value="auto">🎙️ Tự động chọn giọng Bắc Kinh</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="w-full bg-white/20 h-2 rounded-full overflow-hidden cursor-pointer mb-4" onclick="app.seekByProgressBar(event)">
+                            <div id="audioProgressBar" class="bg-gradient-to-r from-brand-500 to-amber-400 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+
+                        <!-- Control Buttons -->
+                        <div class="flex flex-wrap items-center justify-between gap-3">
+                            <!-- Left Controls: Speed & Loop -->
+                            <div class="flex items-center space-x-2">
+                                <button onclick="app.cycleSpeed()" id="speedBtn" title="Tốc độ đọc" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold text-white transition">
+                                    1.0x
+                                </button>
+                                <button onclick="app.toggleLoopSentence()" id="loopSentenceBtn" title="Lặp lại câu hiện tại để luyện nghe sâu" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-medium text-slate-200 transition flex items-center gap-1.5">
+                                    <i class="fa-solid fa-repeat"></i> <span class="hidden sm:inline">Lặp 1 câu</span>
+                                </button>
+                                <button onclick="app.testMandarinVoice()" id="testVoiceBtn" title="Kiểm tra giọng Phổ thông đang chọn" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-medium text-slate-200 transition flex items-center gap-1.5">
+                                    <i class="fa-solid fa-circle-check text-emerald-300"></i> <span class="hidden sm:inline">Kiểm tra giọng</span>
+                                </button>
+                            </div>
+
+                            <!-- Center Play/Pause/Prev/Next -->
+                            <div class="flex items-center space-x-3">
+                                <button onclick="app.prevSentence()" title="Câu trước" class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition">
+                                    <i class="fa-solid fa-backward-step"></i>
+                                </button>
+                                <button onclick="app.togglePlay()" id="mainPlayBtn" class="w-12 h-12 rounded-full bg-brand-500 hover:bg-brand-600 text-white shadow-lg shadow-brand-500/40 flex items-center justify-center text-lg transition transform active:scale-95">
+                                    <i class="fa-solid fa-play ml-0.5" id="mainPlayIcon"></i>
+                                </button>
+                                <button onclick="app.nextSentence()" title="Câu tiếp theo" class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition">
+                                    <i class="fa-solid fa-forward-step"></i>
+                                </button>
+                            </div>
+
+                            <!-- Reliable browser Mandarin controls -->
+                            <div class="flex items-center space-x-1.5">
+                                <button onclick="app.playStandardMandarinSentence()" title="Phát câu hiện tại bằng giọng zh-CN đã chọn" class="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-200 text-xs font-semibold transition flex items-center gap-1.5">
+                                    <i class="fa-solid fa-microphone-lines"></i> <span class="hidden sm:inline">Câu chuẩn</span>
+                                </button>
+                                <span class="hidden sm:inline text-[10px] text-slate-400">zh-CN · 普通话</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pronunciation practice recorder -->
+                    <div class="mt-4 rounded-2xl bg-white/10 border border-white/15 p-4" id="pronunciationPracticePanel">
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                            <div>
+                                <p class="text-sm font-bold text-white"><i class="fa-solid fa-microphone-lines text-rose-300 mr-1.5"></i> Luyện phát âm & so sánh</p>
+                                <p class="text-[11px] text-slate-300 mt-0.5">Nghe câu chuẩn, bấm ghi âm rồi nói lại câu đang chọn.</p>
+                            </div>
+                            <span id="recordingStatus" class="text-[11px] text-slate-300">Sẵn sàng</span>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button onclick="app.playPracticeTarget()" class="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold transition"><i class="fa-solid fa-volume-high mr-1"></i>Nghe câu chuẩn</button>
+                            <button onclick="app.toggleRecording()" id="recordBtn" class="px-3 py-2 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold transition"><i class="fa-solid fa-microphone mr-1"></i>Bắt đầu ghi âm</button>
+                            <button onclick="app.playRecording()" id="playRecordingBtn" disabled class="px-3 py-2 rounded-xl bg-white/10 text-slate-400 text-xs font-semibold transition"><i class="fa-solid fa-play mr-1"></i>Nghe bản ghi</button>
+                            <button onclick="app.runAIPronunciationScore()" id="aiScoreBtn" disabled class="px-3 py-2 rounded-xl bg-indigo-500/30 text-indigo-100 text-xs font-semibold transition"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i>AI chấm điểm</button>
+                        </div>
+                        <div id="pronunciationResult" class="hidden mt-3 rounded-xl bg-slate-950/30 border border-white/10 p-3 text-xs"></div>
+                    </div>
+                </div>
+
+                <!-- Subtitle & Mode Tabs Bar -->
+                <div class="bg-slate-50 px-6 py-3 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
+                    <!-- Navigation Tabs -->
+                    <div class="flex space-x-1 bg-slate-200/80 p-1 rounded-xl">
+                        <button onclick="app.switchTab('transcript')" id="tab-transcript" class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-bold bg-white text-slate-900 shadow-sm transition">
+                            <i class="fa-solid fa-closed-captioning mr-1 text-brand-500"></i> Phụ đề & Dịch nghĩa
+                        </button>
+                        <button onclick="app.switchTab('vocab')" id="tab-vocab" class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition">
+                            <i class="fa-solid fa-book-bookmark mr-1 text-amber-500"></i> Từ vựng (<span id="vocabCountBadge">0</span>)
+                        </button>
+                        <button onclick="app.switchTab('quiz')" id="tab-quiz" class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition">
+                            <i class="fa-solid fa-circle-question mr-1 text-emerald-500"></i> Bài tập nghe hiểu
+                        </button>
+                    </div>
+
+                    <!-- Subtitle Visibility Toggles (Active on Transcript Tab) -->
+                    <div id="subtitleToggles" class="flex items-center space-x-2">
+                        <span class="text-xs text-slate-400 font-medium hidden sm:inline">Hiển thị:</span>
+                        <button onclick="app.toggleSubtitleLayer('hanzi')" id="toggle-hanzi" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-white transition">
+                            汉字 Chữ Hán
+                        </button>
+                        <button onclick="app.toggleSubtitleLayer('pinyin')" id="toggle-pinyin" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-white transition">
+                            Pinyin
+                        </button>
+                        <button onclick="app.toggleSubtitleLayer('viet')" id="toggle-viet" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-white transition">
+                            Tiếng Việt
+                        </button>
+                        <button onclick="app.toggleBlindListening()" id="toggle-blind" title="Ẩn toàn bộ chữ để luyện nghe mù (Nghe chép chính tả)" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-200 text-slate-700 hover:bg-slate-300 transition">
+                            <i class="fa-solid fa-eye-slash mr-1"></i> Nghe mù
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tab 1: Interactive Transcript -->
+                <div id="panel-transcript" class="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
+                    <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 text-xs text-blue-800 flex items-center justify-between">
+                        <span><i class="fa-solid fa-lightbulb text-blue-500 mr-1.5"></i> <strong>Mẹo luyện nghe:</strong> Nhấn vào bất kỳ câu nào để nghe lại câu đó. Bạn có thể tắt phần Tiếng Việt hoặc Pinyin để thử thách bản thân!</span>
+                    </div>
+                    <div id="transcriptList" class="space-y-3">
+                        <!-- Sentences populated dynamically -->
+                    </div>
+                </div>
+
+                <!-- Tab 2: Key Vocabulary List -->
+                <div id="panel-vocab" class="p-6 hidden max-h-[60vh] overflow-y-auto">
+                    <div class="mb-4 rounded-xl bg-amber-50 border border-amber-200 px-3.5 py-3 text-xs text-amber-900">
+                        <i class="fa-solid fa-layer-group text-amber-500 mr-1"></i>
+                        Mỗi bài gồm từ khóa của chủ đề, cụm từ xuất hiện trong bài đọc và mẫu câu theo cấp độ HSK. Bài Sơ cấp ưu tiên từ nền; Trung cấp mở rộng collocation; Cao cấp thêm cụm học thuật và cách diễn đạt.
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="vocabGrid">
+                        <!-- Vocabulary cards populated dynamically -->
+                    </div>
+                </div>
+
+                <!-- Tab 3: Comprehension Quiz -->
+                <div id="panel-quiz" class="p-6 hidden max-h-[60vh] overflow-y-auto space-y-6">
+                    <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+                        <h3 class="font-bold text-emerald-900 text-sm mb-1">Kiểm tra mức độ hiểu bài nghe</h3>
+                        <p class="text-xs text-emerald-700">Hãy hoàn thành các câu hỏi trắc nghiệm dưới đây sau khi nghe xong để ghi nhớ từ vựng và ngữ cảnh tốt hơn.</p>
+                    </div>
+                    <div id="quizContainer" class="space-y-5">
+                        <!-- Quiz questions populated dynamically -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Personal Vocabulary Bank -->
+    <div id="vocabBankModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[88vh] overflow-hidden shadow-2xl border border-slate-200">
+            <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+                <div><h3 class="font-bold text-slate-900 text-lg">Kho từ vựng của tôi</h3><p class="text-xs text-slate-500 mt-1">Lưu từ cần ôn, nghe lại phát âm và đánh dấu đã nhớ.</p></div>
+                <button onclick="app.closeVocabBank()" class="text-slate-400 hover:text-slate-600 w-8 h-8 rounded-lg"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="p-5 space-y-4">
+                <div class="flex flex-wrap gap-2">
+                    <input id="vocabBankSearch" oninput="app.renderVocabBank()" placeholder="Tìm chữ Hán, pinyin hoặc nghĩa tiếng Việt..." class="flex-1 min-w-[220px] px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-brand-500">
+                    <button onclick="app.exportVocabBank()" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold"><i class="fa-solid fa-download mr-1"></i>Xuất CSV</button>
+                    <button onclick="app.clearVocabBank()" class="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold">Xóa kho</button>
+                </div>
+                <div id="vocabBankList" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[58vh] overflow-y-auto pr-1"></div>
+                <div class="mt-5 pt-5 border-t border-slate-100">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <div><h4 class="font-bold text-slate-900">Ôn tập từ đã lưu</h4><p class="text-xs text-slate-500">Chọn flashcard để nhớ mặt chữ hoặc quiz để kiểm tra nghĩa.</p></div>
+                        <div class="flex gap-1 bg-slate-100 p-1 rounded-xl">
+                            <button onclick="app.startVocabReview('flashcard')" id="reviewFlashcardBtn" class="px-3 py-1.5 rounded-lg bg-white shadow-sm text-xs font-bold text-slate-800">Flashcard</button>
+                            <button onclick="app.startVocabReview('quiz')" id="reviewQuizBtn" class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-500">Quiz</button>
+                        </div>
+                    </div>
+                    <div id="vocabReviewPanel" class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
+                        <div class="text-center py-5 text-slate-400 text-xs"><i class="fa-solid fa-layer-group text-2xl mb-2"></i><p>Chọn Flashcard hoặc Quiz để bắt đầu ôn tập.</p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Learning progress modal -->
+    <div id="progressStatsModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200">
+            <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+                <div><h3 class="font-bold text-slate-900 text-lg">Tiến độ học tập</h3><p class="text-xs text-slate-500 mt-1">Theo dõi thói quen nghe và số từ vựng đã nhớ mỗi ngày.</p></div>
+                <button onclick="app.closeProgressStats()" class="text-slate-400 hover:text-slate-600 w-8 h-8 rounded-lg"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="p-5 space-y-5">
+                <div id="todayProgressCards" class="grid grid-cols-2 lg:grid-cols-4 gap-3"></div>
+                <div class="rounded-2xl border border-slate-200 p-4">
+                    <div class="flex items-center justify-between mb-4"><div><h4 class="font-bold text-slate-900">Hoạt động 7 ngày gần nhất</h4><p class="text-xs text-slate-500">Số lần luyện nghe và số từ đánh dấu đã nhớ.</p></div><span class="text-xs text-indigo-600 font-semibold"><i class="fa-solid fa-calendar-week mr-1"></i>7 ngày</span></div>
+                    <div id="progressChart" class="space-y-3"></div>
+                    <div class="flex flex-wrap gap-4 mt-4 text-[11px] text-slate-500"><span><i class="fa-solid fa-square text-indigo-500 mr-1"></i>Lượt luyện nghe</span><span><i class="fa-solid fa-square text-amber-400 mr-1"></i>Từ đã nhớ thêm</span></div>
+                </div>
+                <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4"><div class="flex items-center justify-between mb-2"><span class="text-sm font-bold text-emerald-900">Tổng kho từ đã nhớ</span><strong id="rememberedVocabSummary" class="text-emerald-700"></strong></div><div class="h-3 bg-white/80 rounded-full overflow-hidden"><div id="rememberedVocabProgress" class="h-full bg-emerald-500 rounded-full transition-all" style="width:0%"></div></div><p id="rememberedVocabHint" class="text-xs text-emerald-700 mt-2"></p></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Custom Lesson Generator Modal -->
+    <div id="aiModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 animate-fade-in">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+                <div class="flex items-center space-x-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-900">Tạo bài luyện nghe mới bằng AI</h3>
+                        <p class="text-xs text-slate-500">Cá nhân hóa chủ đề và cấp độ bạn muốn luyện hôm nay</p>
+                    </div>
+                </div>
+                <button onclick="app.closeAIModal()" class="text-slate-400 hover:text-slate-600 w-8 h-8 rounded-lg flex items-center justify-center">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Chủ đề tình huống bạn muốn nghe:</label>
+                    <input type="text" id="aiTopicInput" placeholder="VD: Mặc cả khi mua quần áo, Phỏng vấn xin việc ngành IT, Hỏi đường đi tàu điện ngầm..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-brand-500 outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Cấp độ (Độ khó):</label>
+                        <select id="aiLevelSelect" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm bg-white focus:ring-2 focus:ring-brand-500 outline-none">
+                            <option value="beginner">🌱 Sơ cấp (HSK 1-2)</option>
+                            <option value="intermediate" selected>🚀 Trung cấp (HSK 3-4)</option>
+                            <option value="advanced">👑 Cao cấp (HSK 5-6)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Thời lượng ước tính:</label>
+                        <select id="aiDurationSelect" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm bg-white focus:ring-2 focus:ring-brand-500 outline-none">
+                            <option value="1 phút 30 giây">1.5 phút (6 câu hội thoại)</option>
+                            <option value="3 phút 00 giây" selected>3 phút (8 câu hội thoại)</option>
+                            <option value="4 phút 30 giây">4.5 phút (10 câu hội thoại)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="aiLoadingStatus" class="hidden bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800 flex items-center space-x-2.5">
+                    <i class="fa-solid fa-circle-notch fa-spin text-amber-600 text-base"></i>
+                    <span>Đang biên soạn kịch bản hội thoại tiếng Trung, phiên âm Pinyin, dịch nghĩa tiếng Việt và câu hỏi trắc nghiệm...</span>
+                </div>
+            </div>
+
+            <div class="mt-6 flex items-center justify-end space-x-3 pt-4 border-t border-slate-100">
+                <button onclick="app.closeAIModal()" class="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 transition">Hủy</button>
+                <button onclick="app.generateLessonWithAI()" id="aiGenerateSubmitBtn" class="px-5 py-2 rounded-xl text-sm font-semibold bg-brand-600 hover:bg-brand-700 text-white shadow-md transition flex items-center space-x-2">
+                    <i class="fa-solid fa-bolt"></i>
+                    <span>Tạo bài học ngay</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Toast Notification -->
+    <div id="toastBox" class="fixed bottom-5 right-5 z-50 hidden bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl border border-slate-700 text-sm flex items-center space-x-2.5 transition-all">
+        <i class="fa-solid fa-circle-info text-brand-400"></i>
+        <span id="toastMessage">Thông báo</span>
+    </div>
+
+    <script>
+        // ==========================================
+        // CURATED CHINESE LISTENING LESSONS DATABASE
+        // Ordered from Easy (HSK 1) to Hard (HSK 6)
+        // Duration: 1 min to 5 mins
+        // ==========================================
+        const INITIAL_LESSONS = [
+            {
+                id: 'lesson-1',
+                orderDifficulty: 1,
+                level: 'beginner',
+                hskBadge: 'Sơ cấp • HSK 1',
+                topic: 'Giao tiếp hàng ngày',
+                durationText: '1 phút 15 giây',
+                durationCategory: 'short',
+                titleZh: '初次见面与自我介绍',
+                titleVi: 'Làm quen và giới thiệu bản thân lần đầu',
+                completed: false,
+                dialogue: [
+                    {
+                        speaker: 'A (Tiểu Minh)',
+                        hanzi: '你好！很高兴认识你。你叫什么名字？',
+                        pinyin: 'Nǐ hǎo! Hěn gāoxìng rènshi nǐ. Nǐ jiào shénme míngzi?',
+                        viet: 'Xin chào! Rất vui được làm quen với bạn. Bạn tên là gì?'
+                    },
+                    {
+                        speaker: 'B (Lan Anh)',
+                        hanzi: '你好！我叫兰英，我是越南人。你呢？',
+                        pinyin: 'Nǐ hǎo! Wǒ jiào Lányīng, wǒ shì Yuènán rén. Nǐ ne?',
+                        viet: 'Chào bạn! Mình tên là Lan Anh, mình là người Việt Nam. Còn bạn thì sao?'
+                    },
+                    {
+                        speaker: 'A (Tiểu Minh)',
+                        hanzi: '我叫小明，我是北京人。你来中国多长时间了？',
+                        pinyin: 'Wǒ jiào Xiǎomíng, wǒ shì Běijīng rén. Nǐ lái Zhōngguó duō cháng shíjiān le?',
+                        viet: 'Mình tên là Tiểu Minh, người Bắc Kinh. Bạn đến Trung Quốc bao lâu rồi?'
+                    },
+                    {
+                        speaker: 'B (Lan Anh)',
+                        hanzi: '我刚来两个月，现在在大学学习汉语。',
+                        pinyin: 'Wǒ gāng lái liǎng gè yuè, xiànzài zài dàxué xuéxí Hànyǔ.',
+                        viet: 'Mình mới đến được hai tháng, hiện đang học tiếng Trung tại trường đại học.'
+                    },
+                    {
+                        speaker: 'A (Tiểu Minh)',
+                        hanzi: '你的汉语说得真不错！以后我们可以一起练习。',
+                        pinyin: 'Nǐ de Hànyǔ shuō de zhēn bùcuò! Yǐhòu wǒmen kěyǐ yìqǐ liànxí.',
+                        viet: 'Tiếng Trung của bạn nói khá lắm! Sau này chúng mình có thể cùng nhau luyện tập.'
+                    },
+                    {
+                        speaker: 'B (Lan Anh)',
+                        hanzi: '太好了，谢谢你的帮助！周末你有空吗？',
+                        pinyin: 'Tài hǎo le, xièxie nǐ de bāngzhù! Zhōumò nǐ yǒu kòng ma?',
+                        viet: 'Tuyệt quá, cảm ơn sự giúp đỡ của bạn! Cuối tuần bạn có rảnh không?'
+                    }
+                ],
+                vocab: [
+                    { word: '认识', pinyin: 'rènshi', meaning: 'Quen biết, làm quen' },
+                    { word: '越南', pinyin: 'Yuènán', meaning: 'Việt Nam' },
+                    { word: '刚', pinyin: 'gāng', meaning: 'Vừa mới' },
+                    { word: '练习', pinyin: 'liànxí', meaning: 'Luyện tập, thực hành' },
+                    { word: '周末', pinyin: 'zhōumò', meaning: 'Cuối tuần' },
+                    { word: '有空', pinyin: 'yǒu kòng', meaning: 'Có thời gian rảnh' }
+                ],
+                quiz: [
+                    {
+                        question: 'Lan Anh đã đến Trung Quốc được bao lâu?',
+                        options: ['Hai tuần', 'Hai tháng', 'Hai năm', 'Sáu tháng'],
+                        correctIndex: 1,
+                        explanation: 'Trong bài Lan Anh nói: "我刚来两个月" (Mình mới đến được hai tháng).'
+                    },
+                    {
+                        question: 'Hiện tại Lan Anh đang làm gì ở Trung Quốc?',
+                        options: ['Đi du lịch', 'Làm việc tại công ty', 'Học tiếng Trung ở trường đại học', 'Dạy tiếng Việt'],
+                        correctIndex: 2,
+                        explanation: 'Cô ấy nói: "现在在大学学习汉语" (Hiện đang học tiếng Trung tại trường đại học).'
+                    }
+                ]
+            },
+            {
+                id: 'lesson-2',
+                orderDifficulty: 2,
+                level: 'beginner',
+                hskBadge: 'Sơ cấp • HSK 2',
+                topic: 'Ẩm thực & Mua sắm',
+                durationText: '1 phút 45 giây',
+                durationCategory: 'short',
+                titleZh: '在奶茶店点饮料',
+                titleVi: 'Gọi đồ uống tại quán trà sữa (Chọn đá & đường)',
+                completed: false,
+                dialogue: [
+                    {
+                        speaker: 'Nhân viên',
+                        hanzi: '欢迎光临！请问您想喝点什么？',
+                        pinyin: 'Huānyíng guānglín! Qǐngwèn nín xiǎng hē diǎn shénme?',
+                        viet: 'Chào mừng quý khách! Xin hỏi bạn muốn uống gì ạ?'
+                    },
+                    {
+                        speaker: 'Khách hàng',
+                        hanzi: '你好，我要一杯珍珠奶茶，还要一杯柠檬绿茶。',
+                        pinyin: 'Nǐ hǎo, wǒ yào yì bēi zhēnzhū nǎichá, hái yào yì bēi níngméng lǜchá.',
+                        viet: 'Chào bạn, cho mình một ly trà sữa trân châu và một ly lục trà chanh.'
+                    },
+                    {
+                        speaker: 'Nhân viên',
+                        hanzi: '好的，请问要大杯还是中杯？甜度和冰块怎么选？',
+                        pinyin: 'Hǎo de, qǐngwèn yào dà bēi háishi zhōng bēi? Tiándù hé bīngkuài zěnme xuǎn?',
+                        viet: 'Vâng ạ, xin hỏi bạn lấy size lớn hay size vừa? Độ ngọt và lượng đá chọn thế nào ạ?'
+                    },
+                    {
+                        speaker: 'Khách hàng',
+                        hanzi: '两杯都要大杯。珍珠奶茶要半糖、少冰。',
+                        pinyin: 'Liǎng bēi dōu yào dà bēi. Zhēnzhū nǎichá yào bàn táng, shǎo bīng.',
+                        viet: 'Cả hai ly đều lấy size lớn. Trà sữa trân châu lấy 50% đường, ít đá.'
+                    },
+                    {
+                        speaker: 'Nhân viên',
+                        hanzi: '那柠檬绿茶呢？也是半糖少冰吗？',
+                        pinyin: 'Nà níngméng lǜchá ne? Yě shì bàn táng shǎo bīng ma?',
+                        viet: 'Vậy còn lục trà chanh thì sao ạ? Cũng nửa đường ít đá chứ?'
+                    },
+                    {
+                        speaker: 'Khách hàng',
+                        hanzi: '柠檬绿茶要正常冰、七分糖。请问一共多少钱？',
+                        pinyin: 'Níngméng lǜchá yào zhèngcháng bīng, qī fēn táng. Qǐngwèn yígòng duōshao qián?',
+                        viet: 'Lục trà chanh lấy đá bình thường, 70% đường. Xin hỏi tổng cộng bao nhiêu tiền?'
+                    },
+                    {
+                        speaker: 'Nhân viên',
+                        hanzi: '一共三十二块。您可以扫这里的二维码付钱。',
+                        pinyin: 'Yígòng sānshí\'èr kuài. Nín kěyǐ sǎo zhèlǐ de èrwéimǎ fù qián.',
+                        viet: 'Tổng cộng 32 tệ ạ. Bạn có thể quét mã QR ở đây để thanh toán.'
+                    }
+                ],
+                vocab: [
+                    { word: '欢迎光临', pinyin: 'huānyíng guānglín', meaning: 'Hoan nghênh quý khách' },
+                    { word: '珍珠奶茶', pinyin: 'zhēnzhū nǎichá', meaning: 'Trà sữa trân châu' },
+                    { word: '甜度', pinyin: 'tiándù', meaning: 'Độ ngọt' },
+                    { word: '半糖 / 少冰', pinyin: 'bàn táng / shǎo bīng', meaning: 'Nửa đường (50%) / Ít đá' },
+                    { word: '二维码', pinyin: 'èrwéimǎ', meaning: 'Mã QR' }
+                ],
+                quiz: [
+                    {
+                        question: 'Khách hàng đã chọn mức đường và đá như thế nào cho ly Trà sữa trân châu?',
+                        options: ['Đá bình thường, 70% đường', 'Ít đá, 50% đường (nửa đường)', 'Không đá, không đường', 'Nhiều đá, 100% đường'],
+                        correctIndex: 1,
+                        explanation: 'Khách nói: "珍珠奶茶要半糖、少冰" (Trà sữa trân châu lấy nửa đường, ít đá).'
+                    },
+                    {
+                        question: 'Tổng số tiền hai ly nước là bao nhiêu?',
+                        options: ['22 tệ', '28 tệ', '32 tệ', '42 tệ'],
+                        correctIndex: 2,
+                        explanation: 'Nhân viên nói: "一共三十二块" (Tổng cộng 32 tệ).'
+                    }
+                ]
+            },
+            {
+                id: 'lesson-3',
+                orderDifficulty: 3,
+                level: 'intermediate',
+                hskBadge: 'Trung cấp • HSK 3',
+                topic: 'Du lịch & Di chuyển',
+                durationText: '2 phút 30 giây',
+                durationCategory: 'medium',
+                titleZh: '在高铁站改签车票',
+                titleVi: 'Đổi giờ vé tàu cao tốc tại nhà ga',
+                completed: false,
+                dialogue: [
+                    {
+                        speaker: 'Hành khách',
+                        hanzi: '您好！不好意思，因为路上堵车，我没赶上刚才那趟去上海的高铁。',
+                        pinyin: 'Nín hǎo! Bù hǎoyìsi, yīnwèi lùshang dǔchē, wǒ méi gǎnshàng gāngcái nà tàng qù Shànghǎi de gāotiě.',
+                        viet: 'Xin chào! Ngại quá, vì trên đường tắc đường nên tôi đã không kịp chuyến tàu cao tốc đi Thượng Hải vừa nãy.'
+                    },
+                    {
+                        speaker: 'Nhân viên nhà ga',
+                        hanzi: '别着急，请把您的护照和车票订单给我看一下。',
+                        pinyin: 'Bié zháojí, qǐng bǎ nín de hùzhào hé chēpiào dìngdān gěi wǒ kàn yíxià.',
+                        viet: 'Đừng lo lắng, xin vui lòng đưa hộ chiếu và mã đặt vé của bạn cho tôi xem một chút.'
+                    },
+                    {
+                        speaker: 'Hành khách',
+                        hanzi: '给您。请问我还能免费改签今天下午的其他车次吗？',
+                        pinyin: 'Gěi nín. Qǐngwèn wǒ hái néng miǎnfèi gǎiqiān jīntiān xiàwǔ de qítā chēcì ma?',
+                        viet: 'Gửi bạn. Xin hỏi tôi còn có thể đổi miễn phí sang chuyến tàu khác trong chiều nay không?'
+                    },
+                    {
+                        speaker: 'Nhân viên nhà ga',
+                        hanzi: '可以的，当天改签一次是不收手续费的。下午三点半有一趟，还有靠窗的二等座。',
+                        pinyin: 'Kěyǐ de, dāngtiān gǎiqiān yí cì shì bù shōu shǒuxùfèi de. Xiàwǔ sān diǎn bàn yǒu yí tàng, hái yǒu kào chuāng de èrděngzuò.',
+                        viet: 'Được ạ, đổi vé một lần trong ngày thì không thu phí thủ tục. 3 giờ rưỡi chiều có một chuyến, vẫn còn ghế hạng hai cạnh cửa sổ.'
+                    },
+                    {
+                        speaker: 'Hành khách',
+                        hanzi: '太幸运了！那就帮我改签三点半这趟吧，我要靠窗的座位。',
+                        pinyin: 'Tài xìngyùn le! Nà jiù bāng wǒ gǎiqiān sān diǎn bàn zhè tàng ba, wǒ yào kào chuāng de zuòwèi.',
+                        viet: 'May mắn quá! Vậy giúp tôi đổi sang chuyến 3 giờ rưỡi này nhé, tôi lấy chỗ ngồi cạnh cửa sổ.'
+                    },
+                    {
+                        speaker: 'Nhân viên nhà ga',
+                        hanzi: '已经帮您办好了。检票口在二楼的8B，请提前二十分钟去候车室等待。',
+                        pinyin: 'Yǐjīng bāng nín bànhǎo le. Jiǎnpiàokǒu zài èr lóu de bā B, qǐng tíqián èrshí fēnzhōng qù hòuchēshì děngdài.',
+                        viet: 'Đã làm xong cho bạn rồi. Cửa soát vé ở 8B tầng 2, vui lòng đến phòng chờ trước 20 phút.'
+                    }
+                ],
+                vocab: [
+                    { word: '堵车', pinyin: 'dǔchē', meaning: 'Tắc đường, kẹt xe' },
+                    { word: '赶上', pinyin: 'gǎnshàng', meaning: 'Theo kịp, bắt kịp (tàu, xe)' },
+                    { word: '改签', pinyin: 'gǎiqiān', meaning: 'Đổi vé (đổi giờ/ngày khởi hành)' },
+                    { word: '手续费', pinyin: 'shǒuxùfèi', meaning: 'Phí thủ tục, phí dịch vụ' },
+                    { word: '靠窗', pinyin: 'kào chuāng', meaning: 'Cạnh cửa sổ' },
+                    { word: '检票口', pinyin: 'jiǎnpiàokǒu', meaning: 'Cửa soát vé' }
+                ],
+                quiz: [
+                    {
+                        question: 'Tại sao hành khách lại bị lỡ chuyến tàu cao tốc đi Thượng Hải?',
+                        options: ['Vì dậy muộn', 'Vì quên mang hộ chiếu', 'Vì bị tắc đường trên đường ra ga', 'Vì nhầm nhà ga'],
+                        correctIndex: 2,
+                        explanation: 'Hành khách giải thích: "因为路上堵车，我没赶上..." (Vì trên đường tắc đường nên tôi không bắt kịp...).'
+                    },
+                    {
+                        question: 'Cửa soát vé của chuyến tàu mới nằm ở đâu?',
+                        options: ['Cửa 4A tầng 1', 'Cửa 8B tầng 2', 'Cửa 12A tầng 3', 'Cửa 2B tầng 1'],
+                        correctIndex: 1,
+                        explanation: 'Nhân viên hướng dẫn: "检票口在二楼的8B" (Cửa soát vé ở 8B tầng 2).'
+                    }
+                ]
+            },
+            {
+                id: 'lesson-4',
+                orderDifficulty: 4,
+                level: 'intermediate',
+                hskBadge: 'Trung cấp • HSK 4',
+                topic: 'Công sở & Kinh doanh',
+                durationText: '3 phút 20 giây',
+                durationCategory: 'medium',
+                titleZh: '与供应商协商交货时间',
+                titleVi: 'Đàm phán tiến độ giao hàng với nhà cung cấp',
+                completed: false,
+                dialogue: [
+                    {
+                        speaker: 'Quản lý mua hàng (Vương tổng)',
+                        hanzi: '李经理，关于下个月那批电子配件的订单，生产进度怎么样了？',
+                        pinyin: 'Lǐ jīnglǐ, guānyú xià gè yuè nà pī diànzǐ pèijiàn de dìngdān, shēngchǎn jìndù zěnmeyàng le?',
+                        viet: 'Giám đốc Lý, về đơn hàng lô linh kiện điện tử tháng tới, tiến độ sản xuất thế nào rồi?'
+                    },
+                    {
+                        speaker: 'Nhà cung cấp (Giám đốc Lý)',
+                        hanzi: '王总，正想跟您汇报。目前已完成百分之七十，但最近原材料供应有点紧张。',
+                        pinyin: 'Wáng zǒng, zhèng xiǎng gēn nín huìbào. Mùqián yǐ wánchéng bǎi fēn zhī qīshí, dàn zuìjìn yuáncáiliào gōngyìng yǒudiǎn jǐnzhāng.',
+                        viet: 'Vương tổng, tôi vừa định báo cáo với ngài. Hiện đã hoàn thành 70%, nhưng gần đây nguồn cung nguyên vật liệu hơi khan hiếm.'
+                    },
+                    {
+                        speaker: 'Quản lý mua hàng (Vương tổng)',
+                        hanzi: '这会影响按时交货吗？我们越南分公司的促销活动十号就要开始了。',
+                        pinyin: 'Zhè huì yǐngxiǎng ànshí jiāohuò ma? Wǒmen Yuènán fēngōngsī de cùxiāo huódòng shí hào jiù yào kāishǐ le.',
+                        viet: 'Việc này có ảnh hưởng đến giao hàng đúng hạn không? Chiến dịch khuyến mãi của chi nhánh Việt Nam bên tôi mùng 10 là bắt đầu rồi.'
+                    },
+                    {
+                        speaker: 'Nhà cung cấp (Giám đốc Lý)',
+                        hanzi: '如果全部一起发货，可能会推迟三天。不过我们可以分两批寄出。',
+                        pinyin: 'Rúguǒ quánbù yìqǐ fāhuò, kěnéng huì tuīchí sān tiān. Búguò wǒmen kěyǐ fēn liǎng pī jìchū.',
+                        viet: 'Nếu xuất toàn bộ hàng cùng lúc thì có thể bị trễ 3 ngày. Tuy nhiên chúng tôi có thể chia làm hai đợt gửi đi.'
+                    },
+                    {
+                        speaker: 'Quản lý mua hàng (Vương tổng)',
+                        hanzi: '分两批的话，第一批什么时候能到河内仓库？运费怎么算？',
+                        pinyin: 'Fēn liǎng pī de huà, dì-yī pī shénme shíhou néng dào Hénèi cāngkù? Yùnfèi zěnme suàn?',
+                        viet: 'Nếu chia làm hai đợt thì đợt đầu tiên khi nào tới được kho Hà Nội? Chi phí vận chuyển tính thế nào?'
+                    },
+                    {
+                        speaker: 'Nhà cung cấp (Giám đốc Lý)',
+                        hanzi: '第一批五号就能送到，保证不耽误你们的活动。多出来的物流费由我们工厂承担。',
+                        pinyin: 'Dì-yī pī wǔ hào jiù néng sòngdào, bǎozhèng bù dānwu nǐmen de huódòng. Duō chūlái de wùliúfèi yóu wǒmen gōngchǎng chéngdān.',
+                        viet: 'Đợt một mùng 5 là có thể giao tới nơi, đảm bảo không làm lỡ sự kiện của bên ngài. Phí logistics phát sinh thêm sẽ do nhà máy chúng tôi chịu.'
+                    },
+                    {
+                        speaker: 'Quản lý mua hàng (Vương tổng)',
+                        hanzi: '好，这个解决方案很合理。请今天之内把更新后的发货计划发到我邮箱。',
+                        pinyin: 'Hǎo, zhège jiějué fāng\'àn hěn hélǐ. Qǐng jīntiān zhīnèi bǎ gēngxīn hòu de fāhuò jìhuà fā dào wǒ yóuxiāng.',
+                        viet: 'Được, phương án giải quyết này rất hợp lý. Vui lòng gửi kế hoạch xuất hàng đã cập nhật vào email của tôi nội trong hôm nay nhé.'
+                    }
+                ],
+                vocab: [
+                    { word: '生产进度', pinyin: 'shēngchǎn jìndù', meaning: 'Tiến độ sản xuất' },
+                    { word: '原材料', pinyin: 'yuáncáiliào', meaning: 'Nguyên vật liệu' },
+                    { word: '按时交货', pinyin: 'ànshí jiāohuò', meaning: 'Giao hàng đúng hạn' },
+                    { word: '推迟', pinyin: 'tuīchí', meaning: 'Trì hoãn, dời lại' },
+                    { word: '耽误', pinyin: 'dānwu', meaning: 'Làm lỡ việc, làm chậm trễ' },
+                    { word: '承担', pinyin: 'chéngdān', meaning: 'Gánh vác, chịu trách nhiệm (chi phí)' }
+                ],
+                quiz: [
+                    {
+                        question: 'Giải pháp mà Giám đốc Lý đưa ra để không làm lỡ sự kiện của chi nhánh Việt Nam là gì?',
+                        options: ['Hủy đơn hàng', 'Chia đơn hàng làm 2 đợt giao và nhà máy chịu phí vận chuyển phát sinh', 'Yêu cầu bên mua trả thêm tiền tăng ca', 'Đổi sang loại linh kiện rẻ hơn'],
+                        correctIndex: 1,
+                        explanation: 'Giám đốc Lý đề xuất: "我们可以分两批寄出... 多出来的物流费由我们工厂承担" (Chia làm 2 đợt gửi và phí vận chuyển phát sinh do nhà máy chịu).'
+                    }
+                ]
+            },
+            {
+                id: 'lesson-5',
+                orderDifficulty: 5,
+                level: 'advanced',
+                hskBadge: 'Cao cấp • HSK 5',
+                topic: 'Văn hóa & Xã hội',
+                durationText: '4 phút 15 giây',
+                durationCategory: 'long',
+                titleZh: '年轻人的“极简生活”趋势',
+                titleVi: 'Xu hướng "Sống tối giản" của giới trẻ hiện đại',
+                completed: false,
+                dialogue: [
+                    {
+                        speaker: 'MC Thảo luận',
+                        hanzi: '近年来，“断舍离”和极简主义在都市年轻人当中越来越流行。林老师，您怎么看这种现象？',
+                        pinyin: 'Jìnnián lái, “duànshělí” hé jíjiǎn zhǔyì zài dūshì niánqīngrén dāngzhōng yuèláiyuè liúxíng. Lín lǎoshī, nín zěnme kàn zhè zhǒng xiànxiàng?',
+                        viet: 'Những năm gần đây, trào lưu "Đoạn tuyệt - Xả bỏ - Rời xa" và chủ nghĩa tối giản ngày càng thịnh hành trong giới trẻ thành thị. Thầy Lâm, thầy nhìn nhận hiện tượng này thế nào?'
+                    },
+                    {
+                        speaker: 'Chuyên gia xã hội học (Thầy Lâm)',
+                        hanzi: '我认为这反映了年轻人消费观念的成熟。过去大家习惯通过购买大量物品来获得满足感。',
+                        pinyin: 'Wǒ rènwéi zhè fǎnyìng le niánqīngrén xiāofèi guānniàn de chéngshú. Guòqù dàjiā xíguàn tōngguò gòumǎi dàliàng wùpǐn lái huòdé mǎnzúgǎn.',
+                        viet: 'Tôi cho rằng điều này phản ánh sự trưởng thành trong quan niệm tiêu dùng của người trẻ. Trước đây mọi người quen đạt được cảm giác thỏa mãn thông qua việc mua sắm hàng đống đồ đạc.'
+                    },
+                    {
+                        speaker: 'MC Thảo luận',
+                        hanzi: '确实如此，尤其是在电商购物节期间，很多人会冲动消费，买回一堆用不着的东西。',
+                        pinyin: 'Quèshí rúcǐ, yóuqí shì zài diànshāng gòuwùjié qījiān, hěn duō rén huì chōngdòng xiāofèi, mǎi huí yì duī yòngbuzháo de dōngxi.',
+                        viet: 'Quả đúng như vậy, đặc biệt là trong các dịp lễ hội mua sắm thương mại điện tử, rất nhiều người tiêu dùng bốc đồng, mua về cả đống đồ không dùng tới.'
+                    },
+                    {
+                        speaker: 'Chuyên gia xã hội học (Thầy Lâm)',
+                        hanzi: '没错。当房间被杂物填满时，人的心理也会产生焦虑感。减少物质负担，其实是在给精神腾出空间。',
+                        pinyin: 'Méi cuò. Dāng fángjiān bèi záwù tiánmǎn shí, rén de xīnlǐ yě huì chǎnshēng jiāolǜgǎn. Jiǎnshǎo wùzhì fùdān, qíshí shì zài gěi jīngshén téngchū kōngjiān.',
+                        viet: 'Đúng thế. Khi căn phòng bị lấp đầy bởi đồ lặt vặt, tâm lý con người cũng nảy sinh cảm giác lo âu. Giảm bớt gánh nặng vật chất thực chất là đang dành chỗ trống cho tinh thần.'
+                    },
+                    {
+                        speaker: 'MC Thảo luận',
+                        hanzi: '那么，践行极简生活是不是意味着要过苦行僧一样的日子呢？',
+                        pinyin: 'Nàme, jiànxíng jíjiǎn shēnghuó shì bushì yìwèizhe yào guò kǔxíngsēng yíyàng de rìzi ne?',
+                        viet: 'Vậy, thực hành lối sống tối giản có đồng nghĩa với việc phải sống những ngày tháng khổ hạnh không?'
+                    },
+                    {
+                        speaker: 'Chuyên gia xã hội học (Thầy Lâm)',
+                        hanzi: '恰恰相反。极简不是一味地省钱或降低生活品质，而是把精力集中在真正重要的事情上。',
+                        pinyin: 'Qiàqià xiāngfǎn. Jíjiǎn bú shì yíwèi de shěngqián huò jiàngdī shēnghuó pǐnzhì, ér shì bǎ jīnglì jízhōng zài zhēnzhèng zhòngyào de shìqing shàng.',
+                        viet: 'Hoàn toàn ngược lại. Tối giản không phải là mù quáng tiết kiệm tiền hay hạ thấp chất lượng cuộc sống, mà là tập trung tinh lực vào những việc thực sự quan trọng.'
+                    }
+                ],
+                vocab: [
+                    { word: '极简主义', pinyin: 'jíjiǎn zhǔyì', meaning: 'Chủ nghĩa tối giản (Minimalism)' },
+                    { word: '消费观念', pinyin: 'xiāofèi guānniàn', meaning: 'Quan niệm tiêu dùng' },
+                    { word: '冲动消费', pinyin: 'chōngdòng xiāofèi', meaning: 'Tiêu dùng bốc đồng' },
+                    { word: '焦虑感', pinyin: 'jiāolǜgǎn', meaning: 'Cảm giác lo âu, bồn chồn' },
+                    { word: '恰恰相反', pinyin: 'qiàqià xiāngfǎn', meaning: 'Hoàn toàn ngược lại' },
+                    { word: '品质', pinyin: 'pǐnzhì', meaning: 'Chất lượng, phẩm chất' }
+                ],
+                quiz: [
+                    {
+                        question: 'Theo Thầy Lâm, bản chất thực sự của lối sống tối giản là gì?',
+                        options: [
+                            'Không mua bất cứ thứ gì và sống khổ hạnh',
+                            'Chỉ mua hàngลด giá trong các lễ hội thương mại điện tử',
+                            'Giảm gánh nặng vật chất dư thừa và tập trung tâm sức vào những điều thực sự quan trọng',
+                            'Hạ thấp chất lượng cuộc sống để gửi tiết kiệm ngân hàng'
+                        ],
+                        correctIndex: 2,
+                        explanation: 'Thầy Lâm nhấn mạnh: "极简不是一味地省钱或降低生活品质，而是把精力集中在真正重要的事情上".'
+                    }
+                ]
+            },
+            {
+                id: 'lesson-6',
+                orderDifficulty: 6,
+                level: 'advanced',
+                hskBadge: 'Cao cấp • HSK 6',
+                topic: 'Công sở & Kinh doanh',
+                durationText: '4 phút 50 giây',
+                durationCategory: 'long',
+                titleZh: '人工智能时代的职业转型与终身学习',
+                titleVi: 'Chuyển đổi nghề nghiệp và Học tập suốt đời trong kỷ nguyên AI',
+                completed: false,
+                dialogue: [
+                    {
+                        speaker: 'Diễn giả',
+                        hanzi: '随着人工智能技术的突飞猛进，许多传统岗位正在被自动化流程所取代。',
+                        pinyin: 'Suízhe réngōng zhìnéng jìshù de tūfēi-měngjìn, xǔduō chuántǒng gǎngwèi zhèngzài bèi zìdònghuà liúchéng suǒ qǔdài.',
+                        viet: 'Cùng với sự phát triển vượt bậc của công nghệ trí tuệ nhân tạo, nhiều vị trí công việc truyền thống đang dần bị thay thế bởi các quy trình tự động hóa.'
+                    },
+                    {
+                        speaker: 'Diễn giả',
+                        hanzi: '面对这一浪潮，职场人士与其陷入被淘汰的恐慌，不如主动审视自身的核心竞争力。',
+                        pinyin: 'Miànduì zhè yí làngcháo, zhíchǎng rénshì yǔqí xiànrù bèi táotài de kǒnghuāng, bùrú zhǔdòng shěnshì zìshēn de héxīn jìngzhēnglì.',
+                        viet: 'Đối mặt với làn sóng này, người đi làm thay vì rơi vào nỗi hoang mang bị đào thải, chi bằng hãy chủ động nhìn nhận lại năng lực cạnh tranh cốt lõi của bản thân.'
+                    },
+                    {
+                        speaker: 'Diễn giả',
+                        hanzi: '机器虽然在数据处理和逻辑运算上远超人类，但在共情能力、跨文化沟通以及创造性思维方面仍难以企及。',
+                        pinyin: 'Jīqì suīrán zài shùjù chǔlǐ hé luójí yùnsuàn shàng yuǎn chāo rénlèi, dàn zài gòngqíng nénglì, kuà wénhuà gōutōng yǐjí chuàngzàoxìng sīwéi fāngmiàn réng nányǐ qǐjí.',
+                        viet: 'Máy móc tuy vượt xa con người về xử lý dữ liệu và tính toán logic, nhưng về khả năng thấu cảm, giao tiếp đa văn hóa cũng như tư duy sáng tạo thì vẫn khó lòng sánh kịp.'
+                    },
+                    {
+                        speaker: 'Diễn giả',
+                        hanzi: '因此，未来的赢家往往是那些善于把人工智能当作辅助工具，从而大幅提升工作效率的人。',
+                        pinyin: 'Yīncǐ, wèilái de yíngjiā wǎngwǎng shì nàxiē shànyú bǎ réngōng zhìnéng dāngzuò fǔzhù gōngjù, cóng\'ér dàfú tíshēng gōngzuò xiàolǜ de rén.',
+                        viet: 'Do đó, người chiến thắng trong tương lai thường là những người biết tận dụng trí tuệ nhân tạo làm công cụ bổ trợ, từ đó nâng cao mạnh mẽ hiệu suất công việc.'
+                    },
+                    {
+                        speaker: 'Diễn giả',
+                        hanzi: '唯有保持好奇心与终身学习的习惯，我们才能在瞬息万变的时代中立于不败之地。',
+                        pinyin: 'Wéiyǒu bǎochí hàoqíxīn yǔ zhōngshēn xuéxí de xíguàn, wǒmen cáinéng zài shùnxī-wànbiàn de shídài zhōng lìyú-búbài-zhīdì.',
+                        viet: 'Chỉ có duy trì trí tòu mò và thói quen học tập suốt đời, chúng ta mới có thể đứng vững ở thế bất bại trong thời đại biến đổi khôn lường.'
+                    }
+                ],
+                vocab: [
+                    { word: '突飞猛进', pinyin: 'tūfēi-měngjìn', meaning: 'Phát triển vượt bậc, tiến bộ nhanh chóng' },
+                    { word: '核心竞争力', pinyin: 'héxīn jìngzhēnglì', meaning: 'Năng lực cạnh tranh cốt lõi' },
+                    { word: '共情能力', pinyin: 'gòngqíng nénglì', meaning: 'Khả năng thấu cảm (Empathy)' },
+                    { word: '难以企及', pinyin: 'nányǐ qǐjí', meaning: 'Khó lòng với tới, khó sánh kịp' },
+                    { word: '瞬息万变', pinyin: 'shùnxī-wànbiàn', meaning: 'Biến đổi nhanh chóng trong chớp mắt' }
+                ],
+                quiz: [
+                    {
+                        question: 'Theo bài nghe, đâu là những lĩnh vực mà máy móc vẫn khó lòng sánh kịp con người?',
+                        options: [
+                            'Xử lý dữ liệu lớn và tính toán tốc độ cao',
+                            'Làm việc liên tục 24 giờ không nghỉ',
+                            'Khả năng thấu cảm, giao tiếp đa văn hóa và tư duy sáng tạo',
+                            'Lưu trữ thông tin chính xác'
+                        ],
+                        correctIndex: 2,
+                        explanation: 'Bài nói rõ: "但在共情能力、跨文化沟通以及创造性思维方面仍难以企及".'
+                    }
+                ]
+            }
+        ];
+
+        // ==========================================
+        // 100-LESSON CURRICULUM GENERATOR (20 PER TOPIC)
+        // Ordered from HSK 1 (Easy) to HSK 6 (Hard)
+        // ==========================================
+        const TOPIC_SYLLABUS = {
+            'Giao tiếp hàng ngày': [
+                { zh: '初次见面与自我介绍', vi: 'Làm quen và giới thiệu bản thân lần đầu', hsk: 1, kw: '认识', py: 'rènshi', mean: 'Làm quen' },
+                { zh: '询问时间与日常作息', vi: 'Hỏi giờ giấc và thói quen sinh hoạt hàng ngày', hsk: 1, kw: '起床', py: 'qǐchuáng', mean: 'Thức dậy' },
+                { zh: '谈论今天的天气变化', vi: 'Trò chuyện về thời tiết hôm nay', hsk: 1, kw: '下雨', py: 'xiàyǔ', mean: 'Trời mưa' },
+                { zh: '介绍我的家庭成员', vi: 'Giới thiệu các thành viên trong gia đình', hsk: 1, kw: '家庭', py: 'jiātíng', mean: 'Gia đình' },
+                { zh: '周末去哪里玩儿', vi: 'Cuối tuần đi chơi ở đâu', hsk: 2, kw: '周末', py: 'zhōumò', mean: 'Cuối tuần' },
+                { zh: '打电话约朋友看电影', vi: 'Gọi điện hẹn bạn đi xem phim', hsk: 2, kw: '电影院', py: 'diànyǐngyuàn', mean: 'Rạp chiếu phim' },
+                { zh: '祝贺朋友生日快乐', vi: 'Chúc mừng sinh nhật người bạn thân', hsk: 2, kw: '礼物', py: 'lǐwù', mean: 'Món quà' },
+                { zh: '谈论喜欢的体育运动', vi: 'Nói về môn thể thao yêu thích', hsk: 2, kw: '跑步', py: 'pǎobù', mean: 'Chạy bộ' },
+                { zh: '向邻居借日常工具', vi: 'Mượn đồ dùng sửa chữa từ hàng xóm', hsk: 3, kw: '邻居', py: 'línjū', mean: 'Hàng xóm' },
+                { zh: '在理发店剪头发', vi: 'Giao tiếp khi đi cắt tóc tại tiệm', hsk: 3, kw: '发型', py: 'fàxíng', mean: 'Kiểu tóc' },
+                { zh: '寻找丢失的宠物狗', vi: 'Nhờ tìm chú cún cưng bị thất lạc', hsk: 3, kw: '着急', py: 'zháojí', mean: 'Lo lắng' },
+                { zh: '讨论租房与室友合租', vi: 'Thảo luận chuyện thuê nhà và ở ghép', hsk: 3, kw: '房租', py: 'fángzū', mean: 'Tiền thuê nhà' },
+                { zh: '养成早起健身的好习惯', vi: 'Rèn luyện thói quen dậy sớm tập thể hình', hsk: 4, kw: '坚持', py: 'jiānchí', mean: 'Kiên trì' },
+                { zh: '安慰考试失利的朋友', vi: 'An ủi người bạn vừa thi trượt', hsk: 4, kw: '鼓励', py: 'gǔlì', mean: 'Khích lệ, động viên' },
+                { zh: '探讨如何管理个人时间', vi: 'Bàn về cách quản lý thời gian cá nhân', hsk: 4, kw: '效率', py: 'xiàolǜ', mean: 'Hiệu suất' },
+                { zh: '拒绝别人不合理的请求', vi: 'Cách từ chối khéo léo lời nhờ vả vô lý', hsk: 4, kw: '拒绝', py: 'jùjué', mean: 'Từ chối' },
+                { zh: '化解朋友之间的误会', vi: 'Hóa giải hiểu lầm giữa những người bạn', hsk: 5, kw: '沟通', py: 'gōutōng', mean: 'Giao tiếp, trao đổi' },
+                { zh: '克服社交恐惧症的经验', vi: 'Kinh nghiệm vượt qua hội chứng ngại giao tiếp', hsk: 5, kw: '自信', py: 'zìxìn', mean: 'Tự tin' },
+                { zh: '高情商说话之道与礼仪', vi: 'Nghệ thuật ăn nói EQ cao trong đời sống', hsk: 6, kw: '分寸', py: 'fēncùn', mean: 'Chừng mực, đúng mực' },
+                { zh: '现代都市人际关系的边界感', vi: 'Ranh giới tinh tế trong các mối quan hệ hiện đại', hsk: 6, kw: '界限', py: 'jièxiàn', mean: 'Ranh giới' }
+            ],
+            'Ẩm thực & Mua sắm': [
+                { zh: '在水果店买苹果和香蕉', vi: 'Mua táo và chuối tại cửa hàng hoa quả', hsk: 1, kw: '便宜', py: 'piányi', mean: 'Rẻ' },
+                { zh: '在奶茶店点饮料', vi: 'Gọi đồ uống tại quán trà sữa (Chọn đá & đường)', hsk: 2, kw: '珍珠奶茶', py: 'zhēnzhū nǎichá', mean: 'Trà sữa trân châu' },
+                { zh: '在早餐店买包子和豆浆', vi: 'Mua bánh bao và sữa đậu nành bữa sáng', hsk: 1, kw: '打包', py: 'dǎbāo', mean: 'Gói mang về' },
+                { zh: '去超市采购生活用品', vi: 'Đi siêu thị mua sắm đồ dùng sinh hoạt', hsk: 2, kw: '打折', py: 'dǎzhé', mean: 'Giảm giá' },
+                { zh: '在服装店试穿冬季外套', vi: 'Thử áo khoác mùa đông ở cửa hàng quần áo', hsk: 2, kw: '合适', py: 'héshì', mean: 'Vừa vặn, phù hợp' },
+                { zh: '在四川火锅店点菜', vi: 'Gọi món tại nhà hàng lẩu Tứ Xuyên', hsk: 2, kw: '微辣', py: 'wēilà', mean: 'Cay nhẹ' },
+                { zh: '用手机软件点外卖', vi: 'Đặt đồ ăn giao tận nơi qua ứng dụng', hsk: 3, kw: '外卖', py: 'wàimài', mean: 'Đồ ăn giao ngoài' },
+                { zh: '在书店挑选汉语词典', vi: 'Chọn mua từ điển tiếng Trung tại hiệu sách', hsk: 3, kw: '词典', py: 'cídiǎn', mean: 'Từ điển' },
+                { zh: '在菜市场跟老板讲价', vi: 'Mặc cả giá với chủ sạp ngoài chợ tươi sống', hsk: 3, kw: '新鲜', py: 'xīnxiān', mean: 'Tươi ngon' },
+                { zh: '网购商品退换货流程', vi: 'Quy trình đổi trả hàng mua trên mạng', hsk: 3, kw: '包邮', py: 'bāoyóu', mean: 'Miễn phí vận chuyển' },
+                { zh: '挑选送给父母的保健品', vi: 'Chọn mua thực phẩm chức năng biếu bố mẹ', hsk: 4, kw: '营养', py: 'yíngyǎng', mean: 'Dinh dưỡng' },
+                { zh: '比较两款智能手机的性价比', vi: 'So sánh hiệu năng và giá cả hai mẫu điện thoại', hsk: 4, kw: '性价比', py: 'xìngjiàbǐ', mean: 'Tỷ lệ giá/hiệu năng' },
+                { zh: '在甜品店定制生日蛋糕', vi: 'Đặt làm bánh kem sinh nhật theo yêu cầu', hsk: 4, kw: '奶油', py: 'nǎiyóu', mean: 'Kem tươi' },
+                { zh: '双十一购物节凑单攻略', vi: 'Bí quyết săn sale gộp đơn lễ hội mua sắm 11/11', hsk: 4, kw: '优惠券', py: 'yōuhuìquàn', mean: 'Phiếu giảm giá' },
+                { zh: '体验中越特色美食文化', vi: 'Trải nghiệm văn hóa ẩm thực đặc sắc Trung - Việt', hsk: 5, kw: '口味', py: 'kǒuwèi', mean: 'Khẩu vị' },
+                { zh: '投诉餐厅服务与菜品质量', vi: 'Phản ánh chất lượng món ăn và dịch vụ nhà hàng', hsk: 5, kw: '赔偿', py: 'péicháng', mean: 'Bồi thường' },
+                { zh: '直播带货的消费心理分析', vi: 'Phân tích tâm lý mua hàng qua Livestream', hsk: 5, kw: '主播', py: 'zhǔbō', mean: 'Người phát trực tiếp' },
+                { zh: '绿色有机食品与健康饮食', vi: 'Thực phẩm hữu cơ xanh và chế độ ăn lành mạnh', hsk: 5, kw: '添加剂', py: 'tiānjiājì', mean: 'Chất phụ gia' },
+                { zh: '中华八大菜系的历史渊源', vi: 'Nguồn gốc lịch sử Bát đại trường phái ẩm thực Trung Hoa', hsk: 6, kw: '讲究', py: 'jiǎngjiu', mean: 'Cầu kỳ, tinh tế' },
+                { zh: '盲盒经济与潮流消费趋势', vi: 'Nền kinh tế "Hộp mù" (Blindbox) và xu hướng tiêu dùng mới', hsk: 6, kw: '稀缺性', py: 'xīquēxìng', mean: 'Tính khan hiếm' }
+            ],
+            'Du lịch & Di chuyển': [
+                { zh: '向路人问路去地铁站', vi: 'Hỏi đường người đi bộ ra ga tàu điện ngầm', hsk: 1, kw: '往左拐', py: 'wǎng zuǒ guǎi', mean: 'Rẽ trái' },
+                { zh: '乘坐出租车去首都机场', vi: 'Bắt xe taxi đi ra sân bay Thủ Đô', hsk: 1, kw: '行李箱', py: 'xínglǐxiāng', mean: 'Vali hành lý' },
+                { zh: '在酒店前台办理入住手续', vi: 'Làm thủ tục nhận phòng tại quầy lễ tân khách sạn', hsk: 2, kw: '身份证', py: 'shēnfènzhèng', mean: 'Căn cước/Giấy tờ' },
+                { zh: '购买故宫博物院的门票', vi: 'Mua vé tham quan Bảo tàng Cố Cung', hsk: 2, kw: '景点', py: 'jǐngdiǎn', mean: 'Điểm tham quan' },
+                { zh: '在火车站查询检票口位置', vi: 'Tra cứu vị trí cửa soát vé tại ga tàu hỏa', hsk: 2, kw: '候车室', py: 'hòuchēshì', mean: 'Phòng chờ tàu' },
+                { zh: '在高铁站改签车票', vi: 'Đổi giờ vé tàu cao tốc tại nhà ga', hsk: 3, kw: '改签', py: 'gǎiqiān', mean: 'Đổi vé tàu/xe' },
+                { zh: '在机场办理托运与登机牌', vi: 'Làm thủ tục ký gửi hành lý và lấy thẻ lên máy bay', hsk: 3, kw: '登机口', py: 'dēngjīkǒu', mean: 'Cửa lên máy bay' },
+                { zh: '租用共享单车游览西湖', vi: 'Thuê xe đạp công cộng dạo quanh Tây Hồ', hsk: 3, kw: '扫码', py: 'sǎomǎ', mean: 'Quét mã' },
+                { zh: '预订特色民宿与接机服务', vi: 'Đặt phòng Homestay và dịch vụ đón sân bay', hsk: 3, kw: '民宿', py: 'mínsù', mean: 'Nhà nghỉ Homestay' },
+                { zh: '攀登万里长城的难忘经历', vi: 'Trải nghiệm đáng nhớ khi leo Vạn Lý Trường Thành', hsk: 4, kw: '壮观', py: 'zhuàngguān', mean: 'Hùng vĩ, tráng lệ' },
+                { zh: '制定云南七日自由行攻略', vi: 'Lập kế hoạch du lịch tự túc Vân Nam 7 ngày', hsk: 4, kw: '行程', py: 'xíngchéng', mean: 'Lịch trình' },
+                { zh: '航班延误时的食宿安排', vi: 'Sắp xếp ăn nghỉ khi chuyến bay bị hoãn', hsk: 4, kw: '延误', py: 'yánwù', mean: 'Trì hoãn, trễ chuyến' },
+                { zh: '在旅行途中突发水土不服', vi: 'Xử lý khi bị lạ nước lạ cái trong chuyến đi', hsk: 4, kw: '水土不服', py: 'shuǐtǔ-bùfú', mean: 'Không hợp khí hậu/đồ ăn' },
+                { zh: '自驾游川藏线的安全准备', vi: 'Chuẩn bị an toàn cho chuyến phượt ô tô Xuyên Tạng', hsk: 5, kw: '高原反应', py: 'gāoyuán fǎnyìng', mean: 'Say độ cao' },
+                { zh: '在国外海关申报免税商品', vi: 'Khai báo hàng miễn thuế tại hải quan quốc tế', hsk: 5, kw: '免税店', py: 'miǎnshuìdiàn', mean: 'Cửa hàng miễn thuế' },
+                { zh: '特种兵式旅游的利与弊', vi: 'Ưu và nhược điểm của trào lưu du lịch "Đặc chủng binh"', hsk: 5, kw: '打卡', py: 'dǎkǎ', mean: 'Check-in địa điểm' },
+                { zh: '探索丝绸之路的历史古迹', vi: 'Khám phá di tích lịch sử trên Con đường Tơ lụa', hsk: 5, kw: '遗迹', py: 'yíjì', mean: 'Di tích' },
+                { zh: '生态旅游与自然保护区管理', vi: 'Du lịch sinh thái và bảo tồn thiên nhiên bền vững', hsk: 6, kw: '生态平衡', py: 'shēngtài pínghéng', mean: 'Cân bằng sinh thái' },
+                { zh: '跨国游牧生活与数字游民', vi: 'Lối sống du mục kỹ thuật số vừa đi du lịch vừa làm việc', hsk: 6, kw: '自由职业', py: 'zìyóu zhíyè', mean: 'Nghề tự do (Freelance)' },
+                { zh: '文化遗产保护与过度商业化', vi: 'Bảo tồn di sản văn hóa trước làn sóng thương mại hóa', hsk: 6, kw: '原生态', py: 'yuánshēngtài', mean: 'Nguyên bản, hoang sơ' }
+            ],
+            'Công sở & Kinh doanh': [
+                { zh: '新员工第一天入职报到', vi: 'Nhân viên mới nhận việc ngày đầu tiên', hsk: 2, kw: '同事', py: 'tóngshì', mean: 'Đồng nghiệp' },
+                { zh: '向部门经理请病假一天', vi: 'Xin phép trưởng phòng nghỉ ốm một ngày', hsk: 2, kw: '请假', py: 'qǐngjià', mean: 'Xin nghỉ phép' },
+                { zh: '预约会议室与准备投影仪', vi: 'Đặt phòng họp và chuẩn bị máy chiếu', hsk: 2, kw: '会议室', py: 'huìyìshì', mean: 'Phòng họp' },
+                { zh: '打电话确认客户来访时间', vi: 'Gọi điện xác nhận lịch hẹn khách hàng tới thăm', hsk: 3, kw: '接待', py: 'jiēdài', mean: 'Tiếp đón' },
+                { zh: '求职面试中的自我优势介绍', vi: 'Giới thiệu điểm mạnh bản thân khi phỏng vấn xin việc', hsk: 3, kw: '简历', py: 'jiǎnlì', mean: 'Sơ yếu lý lịch (CV)' },
+                { zh: '汇报本周工作总结与下周计划', vi: 'Báo cáo tổng kết công việc tuần này và kế hoạch tuần tới', hsk: 3, kw: '总结', py: 'zǒngjié', mean: 'Tổng kết' },
+                { zh: '申请报销出差机票与住宿费', vi: 'Làm thủ tục thanh toán vé máy bay và phí công tác', hsk: 3, kw: '发票', py: 'fāpiào', mean: 'Hóa đơn đỏ' },
+                { zh: '与供应商协商交货时间', vi: 'Đàm phán tiến độ giao hàng với nhà cung cấp', hsk: 4, kw: '生产进度', py: 'shēngchǎn jìndù', mean: 'Tiến độ sản xuất' },
+                { zh: '跨部门协作推进新产品上市', vi: 'Phối hợp liên phòng ban đẩy mạnh ra mắt sản phẩm mới', hsk: 4, kw: '配合', py: 'pèihé', mean: 'Phối hợp' },
+                { zh: '处理客户的紧急售后投诉', vi: 'Xử lý khiếu nại bảo hành khẩn cấp từ khách hàng', hsk: 4, kw: '解决方案', py: 'jiějué fāng\'àn', mean: 'Phương án giải quyết' },
+                { zh: '与主管谈论年度绩效与加薪', vi: 'Trao đổi với cấp trên về đánh giá KPI năm và tăng lương', hsk: 4, kw: '待遇', py: 'dàiyù', mean: 'Chế độ đãi ngộ' },
+                { zh: '签订中越跨境贸易代理合同', vi: 'Ký kết hợp đồng đại lý thương mại xuyên biên giới Việt - Trung', hsk: 5, kw: '条款', py: 'tiáokuǎn', mean: 'Điều khoản' },
+                { zh: '制定新媒体品牌的营销策略', vi: 'Xây dựng chiến lược Marketing thương hiệu trên mạng xã hội', hsk: 5, kw: '推广', py: 'tuīguǎng', mean: 'Quảng bá' },
+                { zh: '在商务晚宴上的敬酒礼仪', vi: 'Nghi thức chúc rượu trên bàn tiệc thương mại Trung Quốc', hsk: 5, kw: '合作愉快', py: 'hézuò yúkuài', mean: 'Hợp tác vui vẻ' },
+                { zh: '居家远程办公的效率管理', vi: 'Quản lý hiệu suất làm việc từ xa tại nhà (Work from home)', hsk: 5, kw: '自律', py: 'zìlǜ', mean: 'Tự giác kỷ luật' },
+                { zh: '创业公司如何吸引风险投资', vi: 'Công ty khởi nghiệp thu hút vốn đầu tư mạo hiểm thế nào', hsk: 5, kw: '融资', py: 'róngzī', mean: 'Gọi vốn' },
+                { zh: '人工智能时代的职业转型与终身学习', vi: 'Chuyển đổi nghề nghiệp và Học tập suốt đời trong kỷ nguyên AI', hsk: 6, kw: '核心竞争力', py: 'héxīn jìngzhēnglì', mean: 'Năng lực cạnh tranh cốt lõi' },
+                { zh: '全球供应链重组与东南亚市场机遇', vi: 'Tái cấu trúc chuỗi cung ứng toàn cầu và cơ hội tại Đông Nam Á', hsk: 6, kw: '产业链', py: 'chǎnyèliàn', mean: 'Chuỗi công nghiệp' },
+                { zh: '企业危机公关与品牌声誉维护', vi: 'Xử lý khủng hoảng truyền thông và bảo vệ uy tín doanh nghiệp', hsk: 6, kw: '舆论', py: 'yúlùn', mean: 'Dư luận' },
+                { zh: 'ESG可持续发展与绿色商业模式', vi: 'Phát triển bền vững ESG và mô hình kinh doanh xanh', hsk: 6, kw: '碳中和', py: 'tànzhōnghé', mean: 'Trung hòa carbon' }
+            ],
+            'Văn hóa & Xã hội': [
+                { zh: '中国人过春节的传统习俗', vi: 'Phong tục đón Tết Nguyên Đán truyền thống của người Trung Quốc', hsk: 2, kw: '红包', py: 'hóngbāo', mean: 'Lì xì' },
+                { zh: '中秋节赏月与吃月饼', vi: 'Ngắm trăng và thưởng thức bánh nướng dịp Tết Trung Thu', hsk: 2, kw: '团圆', py: 'tuányuán', mean: 'Đoàn viên' },
+                { zh: '十二生肖代表的性格特点', vi: 'Đặc điểm tính cách của 12 con giáp trong văn hóa Á Đông', hsk: 2, kw: '属相', py: 'shǔxiàng', mean: 'Tuổi con giáp' },
+                { zh: '数字八和六在中国文化里的寓意', vi: 'Ý nghĩa may mắn của số 8 và số 6 trong văn hóa Trung Hoa', hsk: 3, kw: '吉利', py: 'jílì', mean: 'Cát tường, may mắn' },
+                { zh: '广场舞为何深受退休老人喜爱', vi: 'Tại sao múa quảng trường lại được người nghỉ hưu yêu thích', hsk: 3, kw: '热闹', py: 'rènao', mean: 'Nhộn nhịp' },
+                { zh: '中国茶文化与待客之道', vi: 'Văn hóa trà đạo Trung Hoa và lễ nghi tiếp khách', hsk: 3, kw: '品茶', py: 'pǐnchá', mean: 'Thưởng trà' },
+                { zh: '移动支付如何改变无现金社会', vi: 'Thanh toán di động đã tạo nên xã hội không tiền mặt thế nào', hsk: 3, kw: '便利', py: 'biànlì', mean: 'Tiện lợi' },
+                { zh: '汉服复兴热潮与传统审美', vi: 'Trào lưu phục hưng Hán phục và thẩm mỹ truyền thống', hsk: 4, kw: '传统', py: 'chuántǒng', mean: 'Truyền thống' },
+                { zh: '送礼物的禁忌与文化差异', vi: 'Những điều kiêng kỵ khi tặng quà và khác biệt văn hóa', hsk: 4, kw: '误会', py: 'wùhuì', mean: 'Hiểu lầm' },
+                { zh: '当代年轻人的晚婚与单身观念', vi: 'Quan niệm kết hôn muộn và độc thân của giới trẻ ngày nay', hsk: 4, kw: '独立', py: 'dúlì', mean: 'Độc lập' },
+                { zh: '短视频平台对阅读习惯的影响', vi: 'Ảnh hưởng của nền tảng video ngắn tới thói quen đọc sách', hsk: 4, kw: '碎片化', py: 'suìpiànhuà', mean: 'Phân mảnh' },
+                { zh: '年轻人的“极简生活”趋势', vi: 'Xu hướng "Sống tối giản" của giới trẻ hiện đại', hsk: 5, kw: '极简主义', py: 'jíjiǎn zhǔyì', mean: 'Chủ nghĩa tối giản' },
+                { zh: '国潮品牌的崛起与文化自信', vi: 'Sự trỗi dậy của thương hiệu Quốc triều (Guochao) nội địa', hsk: 5, kw: '创新', py: 'chuàngxīn', mean: 'Đổi mới sáng tạo' },
+                { zh: '老龄化社会与养老服务体系', vi: 'Xã hội già hóa dân số và hệ thống dịch vụ dưỡng lão', hsk: 5, kw: '人口老龄化', py: 'rénkǒu lǎolínghuà', mean: 'Già hóa dân số' },
+                { zh: '京剧脸谱色彩背后的性格象征', vi: 'Ý nghĩa tính cách đằng sau màu sắc mặt nạ Kinh kịch', hsk: 5, kw: '国粹', py: 'guócuì', mean: 'Quốc粹 (Tinh hoa dân tộc)' },
+                { zh: '城乡教育资源均衡发展的思考', vi: 'Suy ngẫm về cân bằng nguồn lực giáo dục thành thị và nông thôn', hsk: 5, kw: '公平', py: 'gōngpíng', mean: 'Công bằng' },
+                { zh: '“内卷”与“躺平”背后的青年心态', vi: 'Tâm lý người trẻ đằng sau trào lưu "Nội quyển" và "Nằm thẳng"', hsk: 6, kw: '竞争压力', py: 'jìngzhēng yālì', mean: 'Áp lực cạnh tranh' },
+                { zh: '非物质文化遗产的数字化传承', vi: 'Truyền thừa di sản văn hóa phi vật thể bằng công nghệ số', hsk: 6, kw: '匠心', py: 'jiàngxīn', mean: 'Tâm huyết nghệ nhân' },
+                { zh: '儒家思想对现代东亚家庭观的影响', vi: 'Ảnh hưởng của tư tưởng Nho gia tới quan niệm gia đình Đông Á', hsk: 6, kw: '孝顺', py: 'xiàoshùn', mean: 'Hiếu thảo' },
+                { zh: '人工智能时代的伦理边界与隐私保护', vi: 'Ranh giới đạo đức và bảo vệ quyền riêng tư trong kỷ nguyên AI', hsk: 6, kw: '算法推荐', py: 'suànfǎ tuījiàn', mean: 'Thuật toán đề xuất' }
+            ]
+        };
+
+        // Mở rộng từ vựng theo độ khó: mỗi bài có bộ từ nền + cụm diễn đạt phù hợp HSK.
+        // Các từ được gắn với cùng ngữ cảnh hội thoại để người học không học rời rạc.
+        function expandVocabularyForLevel(baseVocab, meta, hsk) {
+            const levelVocab = {
+                beginner: [
+                    { word: '今天', pinyin: 'jīntiān', meaning: 'Hôm nay' },
+                    { word: '聊聊', pinyin: 'liáoliao', meaning: 'Trò chuyện một chút' },
+                    { word: '平时', pinyin: 'píngshí', meaning: 'Thường ngày' },
+                    { word: '经常', pinyin: 'jīngcháng', meaning: 'Thường xuyên' },
+                    { word: '时候', pinyin: 'shíhou', meaning: 'Lúc, khi' },
+                    { word: '刚开始', pinyin: 'gāng kāishǐ', meaning: 'Lúc mới bắt đầu' },
+                    { word: '有点', pinyin: 'yǒudiǎn', meaning: 'Hơi, có một chút' },
+                    { word: '重要', pinyin: 'zhòngyào', meaning: 'Quan trọng' },
+                    { word: '越来越', pinyin: 'yuèláiyuè', meaning: 'Ngày càng...' }
+                ],
+                intermediate: [
+                    { word: '涉及到', pinyin: 'shèjí dào', meaning: 'Liên quan đến, đề cập đến' },
+                    { word: '日常生活', pinyin: 'rìcháng shēnghuó', meaning: 'Cuộc sống hằng ngày' },
+                    { word: '常见', pinyin: 'chángjiàn', meaning: 'Thường gặp, phổ biến' },
+                    { word: '处理', pinyin: 'chǔlǐ', meaning: 'Xử lý' },
+                    { word: '请教', pinyin: 'qǐngjiào', meaning: 'Thỉnh giáo, hỏi kinh nghiệm' },
+                    { word: '有经验', pinyin: 'yǒu jīngyàn', meaning: 'Có kinh nghiệm' },
+                    { word: '提前', pinyin: 'tíqián', meaning: 'Trước thời hạn, từ trước' },
+                    { word: '做好准备', pinyin: 'zuò hǎo zhǔnbèi', meaning: 'Chuẩn bị thật tốt' },
+                    { word: '这样', pinyin: 'zhèyàng', meaning: 'Như vậy, theo cách này' },
+                    { word: '避免麻烦', pinyin: 'bìmiǎn máfan', meaning: 'Tránh phiền phức' },
+                    { word: '对于', pinyin: 'duìyú', meaning: 'Đối với' },
+                    { word: '相关', pinyin: 'xiāngguān', meaning: 'Có liên quan' }
+                ],
+                advanced: [
+                    { word: '关于……的话题', pinyin: 'guānyú...de huàtí', meaning: 'Chủ đề về...' },
+                    { word: '尤其是', pinyin: 'yóuqí shì', meaning: 'Đặc biệt là' },
+                    { word: '涉及', pinyin: 'shèjí', meaning: 'Liên quan, bao hàm' },
+                    { word: '难以处理', pinyin: 'nányǐ chǔlǐ', meaning: 'Khó xử lý' },
+                    { word: '请教有经验的人', pinyin: 'qǐngjiào yǒu jīngyàn de rén', meaning: 'Hỏi người có kinh nghiệm' },
+                    { word: '提前做好准备', pinyin: 'tíqián zuò hǎo zhǔnbèi', meaning: 'Chuẩn bị chu đáo từ trước' },
+                    { word: '避免不必要的麻烦', pinyin: 'bìmiǎn bú bìyào de máfan', meaning: 'Tránh phiền phức không cần thiết' },
+                    { word: '留学生', pinyin: 'liúxuéshēng', meaning: 'Du học sinh' },
+                    { word: '游客', pinyin: 'yóukè', meaning: 'Du khách' },
+                    { word: '表达方式', pinyin: 'biǎodá fāngshì', meaning: 'Cách diễn đạt' },
+                    { word: '越来越顺利', pinyin: 'yuèláiyuè shùnlì', meaning: 'Ngày càng thuận lợi' },
+                    { word: '在……的情况下', pinyin: 'zài...de qíngkuàng xià', meaning: 'Trong tình huống...' },
+                    { word: '从长远来看', pinyin: 'cóng chángyuǎn lái kàn', meaning: 'Xét về lâu dài' },
+                    { word: '积累经验', pinyin: 'jīlěi jīngyàn', meaning: 'Tích lũy kinh nghiệm' },
+                    { word: '采取措施', pinyin: 'cǎiqǔ cuòshī', meaning: 'Áp dụng biện pháp' },
+                    { word: '提高效率', pinyin: 'tígāo xiàolǜ', meaning: 'Nâng cao hiệu suất' }
+                ]
+            };
+            const band = hsk <= 2 ? 'beginner' : (hsk <= 4 ? 'intermediate' : 'advanced');
+            const contextual = [
+                { word: meta.kw, pinyin: meta.py, meaning: meta.mean }
+            ];
+            const all = [...baseVocab, ...contextual, ...levelVocab[band]];
+            const seen = new Set();
+            return all.filter(item => {
+                const key = `${item.word}|${item.pinyin}`;
+                if (seen.has(key)) return false;
+                seen.add(key);
+                return item.word && item.pinyin && item.meaning;
+            });
+        }
+
+        // Bộ bài tập mở rộng: 4 chủ đề cho mỗi cấp HSK 1-6.
+        const TOPIC_EXERCISE_PACKS = [
+            { hsk: 1, topic: 'Giao tiếp hàng ngày', zh: '在教室里介绍自己', vi: 'Giới thiệu bản thân trong lớp học', kw: '同学', py: 'tóngxué', mean: 'Bạn cùng lớp' },
+            { hsk: 1, topic: 'Ẩm thực & Mua sắm', zh: '在小吃店买包子', vi: 'Mua bánh bao tại quán ăn nhỏ', kw: '包子', py: 'bāozi', mean: 'Bánh bao' },
+            { hsk: 1, topic: 'Du lịch & Di chuyển', zh: '在公交车站等车', vi: 'Chờ xe buýt tại trạm', kw: '公交车', py: 'gōngjiāochē', mean: 'Xe buýt' },
+            { hsk: 1, topic: 'Văn hóa & Xã hội', zh: '周末和朋友去公园', vi: 'Cuối tuần đi công viên với bạn', kw: '公园', py: 'gōngyuán', mean: 'Công viên' },
+            { hsk: 2, topic: 'Giao tiếp hàng ngày', zh: '邀请朋友参加生日会', vi: 'Mời bạn tham dự tiệc sinh nhật', kw: '邀请', py: 'yāoqǐng', mean: 'Mời, lời mời' },
+            { hsk: 2, topic: 'Ẩm thực & Mua sắm', zh: '在超市比较两种牛奶', vi: 'So sánh hai loại sữa trong siêu thị', kw: '便宜', py: 'piányi', mean: 'Rẻ' },
+            { hsk: 2, topic: 'Du lịch & Di chuyển', zh: '预订去上海的火车票', vi: 'Đặt vé tàu đi Thượng Hải', kw: '预订', py: 'yùdìng', mean: 'Đặt trước' },
+            { hsk: 2, topic: 'Công sở & Kinh doanh', zh: '第一次参加工作会议', vi: 'Lần đầu tham gia cuộc họp công việc', kw: '会议', py: 'huìyì', mean: 'Cuộc họp' },
+            { hsk: 3, topic: 'Giao tiếp hàng ngày', zh: '如何安排一天的时间', vi: 'Cách sắp xếp thời gian trong ngày', kw: '安排', py: 'ānpái', mean: 'Sắp xếp, bố trí' },
+            { hsk: 3, topic: 'Ẩm thực & Mua sắm', zh: '网购商品的退换货问题', vi: 'Đổi trả hàng khi mua sắm trực tuyến', kw: '退换货', py: 'tuìhuànhuò', mean: 'Đổi trả hàng' },
+            { hsk: 3, topic: 'Du lịch & Di chuyển', zh: '旅行中遇到天气变化', vi: 'Gặp thay đổi thời tiết trong chuyến đi', kw: '天气预报', py: 'tiānqì yùbào', mean: 'Dự báo thời tiết' },
+            { hsk: 3, topic: 'Công sở & Kinh doanh', zh: '同事之间分工合作', vi: 'Phân công và hợp tác giữa các đồng nghiệp', kw: '分工', py: 'fēngōng', mean: 'Phân công công việc' },
+            { hsk: 4, topic: 'Giao tiếp hàng ngày', zh: '搬家以后适应新环境', vi: 'Thích nghi với môi trường mới sau khi chuyển nhà', kw: '适应', py: 'shìyìng', mean: 'Thích nghi' },
+            { hsk: 4, topic: 'Ẩm thực & Mua sắm', zh: '健康饮食与外卖选择', vi: 'Ăn uống lành mạnh và lựa chọn đồ ăn giao tận nơi', kw: '营养', py: 'yíngyǎng', mean: 'Dinh dưỡng' },
+            { hsk: 4, topic: 'Du lịch & Di chuyển', zh: '旅行计划临时发生变化', vi: 'Kế hoạch du lịch thay đổi đột xuất', kw: '调整', py: 'tiáozhěng', mean: 'Điều chỉnh' },
+            { hsk: 4, topic: 'Văn hóa & Xã hội', zh: '不同文化中的礼貌表达', vi: 'Cách biểu đạt lịch sự giữa các nền văn hóa', kw: '礼貌', py: 'lǐmào', mean: 'Lịch sự' },
+            { hsk: 5, topic: 'Công sở & Kinh doanh', zh: '企业如何应对市场竞争', vi: 'Doanh nghiệp ứng phó với cạnh tranh thị trường', kw: '竞争力', py: 'jìngzhēnglì', mean: 'Năng lực cạnh tranh' },
+            { hsk: 5, topic: 'Du lịch & Di chuyển', zh: '文化旅游中的深度体验', vi: 'Trải nghiệm chuyên sâu trong du lịch văn hóa', kw: '深度游', py: 'shēndù yóu', mean: 'Du lịch chuyên sâu' },
+            { hsk: 5, topic: 'Văn hóa & Xã hội', zh: '社交媒体与个人形象', vi: 'Mạng xã hội và hình ảnh cá nhân', kw: '个人形象', py: 'gèrén xíngxiàng', mean: 'Hình ảnh cá nhân' },
+            { hsk: 5, topic: 'Giao tiếp hàng ngày', zh: '如何有效解决人际冲突', vi: 'Cách giải quyết hiệu quả xung đột giữa người với người', kw: '人际关系', py: 'rénjì guānxì', mean: 'Quan hệ giữa người với người' },
+            { hsk: 6, topic: 'Công sở & Kinh doanh', zh: '数字化转型带来的管理挑战', vi: 'Thách thức quản trị do chuyển đổi số mang lại', kw: '数字化转型', py: 'shùzìhuà zhuǎnxíng', mean: 'Chuyển đổi số' },
+            { hsk: 6, topic: 'Du lịch & Di chuyển', zh: '旅游业的可持续发展', vi: 'Phát triển bền vững của ngành du lịch', kw: '可持续发展', py: 'kě chíxù fāzhǎn', mean: 'Phát triển bền vững' },
+            { hsk: 6, topic: 'Văn hóa & Xã hội', zh: '城市化进程中的社区文化', vi: 'Văn hóa cộng đồng trong quá trình đô thị hóa', kw: '城市化', py: 'chéngshìhuà', mean: 'Đô thị hóa' },
+            { hsk: 6, topic: 'Giao tiếp hàng ngày', zh: '跨文化沟通中的思维差异', vi: 'Khác biệt tư duy trong giao tiếp liên văn hóa', kw: '跨文化沟通', py: 'kuà wénhuà gōutōng', mean: 'Giao tiếp liên văn hóa' }
+        ];
+
+        function buildThemedExerciseLessons() {
+            const labels = { 1: 'Sơ cấp', 2: 'Sơ cấp', 3: 'Trung cấp', 4: 'Trung cấp', 5: 'Cao cấp', 6: 'Cao cấp' };
+            return TOPIC_EXERCISE_PACKS.map((meta, index) => {
+                const level = meta.hsk <= 2 ? 'beginner' : (meta.hsk <= 4 ? 'intermediate' : 'advanced');
+                const dialogue = [
+                    { speaker: 'Nhân vật A', hanzi: `我们今天练习“${meta.zh}”这个主题，你觉得最重要的问题是什么？`, pinyin: `Wǒmen jīntiān liànxí “${meta.zh}” zhège zhǔtí, nǐ juéde zuì zhòngyào de wèntí shì shénme?`, viet: `Hôm nay chúng ta luyện chủ đề “${meta.vi}”, bạn nghĩ vấn đề quan trọng nhất là gì?` },
+                    { speaker: 'Nhân vật B', hanzi: `我认为关键在于了解“${meta.kw}”，还要根据实际情况做好准备。`, pinyin: `Wǒ rènwéi guānjiàn zài yú liǎojiě “${meta.py}”, hái yào gēnjù shíjì qíngkuàng zuò hǎo zhǔnbèi.`, viet: `Mình cho rằng điểm mấu chốt là hiểu “${meta.mean}” và chuẩn bị theo tình hình thực tế.` },
+                    { speaker: 'Nhân vật A', hanzi: `如果遇到困难，我们应该先冷静下来，再想办法解决。`, pinyin: `Rúguǒ yùdào kùnnan, wǒmen yīnggāi xiān lěngjìng xiàlai, zài xiǎng bànfǎ jiějué.`, viet: `Nếu gặp khó khăn, chúng ta nên bình tĩnh trước rồi tìm cách giải quyết.` },
+                    { speaker: 'Nhân vật B', hanzi: `没错，多听几遍并记下关键词，有助于听懂完整内容。`, pinyin: `Méi cuò, duō tīng jǐ biàn bìng jì xià guānjiàncí, yǒuzhù yú tīng dǒng wánzhěng nèiróng.`, viet: `Đúng vậy, nghe lại vài lần và ghi từ khóa sẽ giúp hiểu đầy đủ nội dung.` },
+                    { speaker: 'Nhân vật A', hanzi: `那我们就用这个方法，再练习一遍吧。`, pinyin: `Nà wǒmen jiù yòng zhège fāngfǎ, zài liànxí yí biàn ba.`, viet: `Vậy chúng ta dùng phương pháp này và luyện thêm một lần nhé.` },
+                    { speaker: 'Nhân vật B', hanzi: `好的，希望通过练习，我能越来越熟悉相关表达。`, pinyin: `Hǎo de, xīwàng tōngguò liànxí, wǒ néng yuèláiyuè shúxī xiāngguān biǎodá.`, viet: `Được, hy vọng qua luyện tập mình sẽ ngày càng quen với cách diễn đạt liên quan.` }
+                ];
+                const base = [
+                    { word: meta.kw, pinyin: meta.py, meaning: meta.mean },
+                    { word: '关键', pinyin: 'guānjiàn', meaning: 'Mấu chốt' },
+                    { word: '实际情况', pinyin: 'shíjì qíngkuàng', meaning: 'Tình hình thực tế' },
+                    { word: '冷静', pinyin: 'lěngjìng', meaning: 'Bình tĩnh' },
+                    { word: '关键词', pinyin: 'guānjiàncí', meaning: 'Từ khóa' },
+                    { word: '有助于', pinyin: 'yǒuzhù yú', meaning: 'Có ích cho, giúp cho' }
+                ];
+                const quiz = [{ question: `Bài tập tập trung vào chủ đề nào?`, options: [`${meta.zh} (${meta.vi})`, 'Mua vé máy bay', 'Nấu ăn tại nhà', 'Học thể thao'], correctIndex: 0, explanation: `Từ khóa chính là “${meta.kw}” (${meta.py}) trong chủ đề ${meta.vi}.` }, { question: 'Nhân vật B khuyên người học nên làm gì khi luyện nghe?', options: ['Chỉ nghe một lần', 'Nghe lại và ghi từ khóa', 'Bỏ qua từ mới', 'Không cần chuẩn bị'], correctIndex: 1, explanation: 'Nhân vật B khuyên nghe lại vài lần và ghi các từ khóa.' }];
+                return { id: `exercise-hsk-${meta.hsk}-${index + 1}`, orderDifficulty: meta.hsk * 10 + 100 + index, topicIndex: 100 + index, isExercise: true, level, hskBadge: `${labels[meta.hsk]} • HSK ${meta.hsk} · Bài tập chủ đề`, topic: meta.topic, durationText: meta.hsk <= 2 ? '2 phút 00 giây' : (meta.hsk <= 4 ? '3 phút 00 giây' : '4 phút 30 giây'), durationCategory: meta.hsk <= 2 ? 'short' : (meta.hsk <= 4 ? 'medium' : 'long'), titleZh: meta.zh, titleVi: meta.vi, completed: false, dialogue, vocab: expandVocabularyForLevel(base, meta, meta.hsk), quiz };
+            });
+        }
+
+        function buildComplete100Lessons() {
+            const fullList = [];
+            const topics = Object.keys(TOPIC_SYLLABUS);
+
+            topics.forEach((topicName, tIdx) => {
+                const items = TOPIC_SYLLABUS[topicName];
+                items.forEach((meta, indexInTopic) => {
+                    // Check if we already have one of the 6 rich handcrafted lessons matching titleZh
+                    const handcrafted = INITIAL_LESSONS.find(l => l.titleZh === meta.zh);
+                    if (handcrafted) {
+                        fullList.push({
+                            ...handcrafted,
+                            id: `topic-${tIdx + 1}-lesson-${indexInTopic + 1}`,
+                            orderDifficulty: meta.hsk * 10 + indexInTopic,
+                            topicIndex: indexInTopic + 1,
+                            vocab: expandVocabularyForLevel(handcrafted.vocab, meta, meta.hsk)
+                        });
+                        return;
+                    }
+
+                    // Determine Level & Duration based on HSK difficulty (1 -> 6)
+                    let level = 'beginner';
+                    let durationCategory = 'short';
+                    let durationText = `1 phút ${15 + (indexInTopic * 7) % 40} giây`;
+
+                    if (meta.hsk === 3 || meta.hsk === 4) {
+                        level = 'intermediate';
+                        durationCategory = 'medium';
+                        durationText = `${2 + (indexInTopic % 2)} phút ${10 + (indexInTopic * 9) % 45} giây`;
+                    } else if (meta.hsk >= 5) {
+                        level = 'advanced';
+                        durationCategory = 'long';
+                        durationText = `4 phút ${10 + (indexInTopic * 11) % 45} giây`;
+                    }
+
+                    const levelLabel = level === 'beginner' ? 'Sơ cấp' : (level === 'intermediate' ? 'Trung cấp' : 'Cao cấp');
+                    const hskBadge = `${levelLabel} • HSK ${meta.hsk}`;
+
+                    // Build realistic contextual 6-line dialogue tailored to the topic & keyword
+                    const dialogue = [
+                        {
+                            speaker: 'Nhân vật A',
+                            hanzi: `今天我们聊聊关于“${meta.zh}”的话题吧，你平时经常遇到这种情况吗？`,
+                            pinyin: `Jīntiān wǒmen liáoliao guānyú “${meta.zh}” de huàtí ba, nǐ píngshí jīngcháng yùdào zhè zhǒng qíngkuàng ma?`,
+                            viet: `Hôm nay chúng mình cùng trò chuyện về chủ đề "${meta.vi}" nhé, bình thường bạn có hay gặp tình huống này không?`
+                        },
+                        {
+                            speaker: 'Nhân vật B',
+                            hanzi: `是啊，在日常生活中这很常见，尤其是涉及到“${meta.kw}”的时候。`,
+                            pinyin: `Shì a, zài rìcháng shēnghuó zhōng zhè hěn chángjiàn, yóuqí shì shèjí dào “${meta.py}” de shíhou.`,
+                            viet: `Đúng vậy, trong đời sống hàng ngày chuyện này rất phổ biến, đặc biệt là khi liên quan đến "${meta.mean.toLowerCase()}".`
+                        },
+                        {
+                            speaker: 'Nhân vật A',
+                            hanzi: `刚开始的时候我觉得有点难处理，后来请教了有经验的朋友才明白。`,
+                            pinyin: `Gāng kāishǐ de shíhou wǒ juéde yǒudiǎn nán chǔlǐ, hòulái qǐngjiào le yǒu jīngyàn de péngyou cái míngbai.`,
+                            viet: `Lúc mới bắt đầu mình cảm thấy hơi khó xử lý, sau này hỏi kinh nghiệm bạn bè mới hiểu rõ.`
+                        },
+                        {
+                            speaker: 'Nhân vật B',
+                            hanzi: `没错，提前做好准备非常重要，这样可以避免很多不必要的麻烦。`,
+                            pinyin: `Méi cuò, tíqián zuò hǎo zhǔnbèi fēicháng zhòngyào, zhèyàng kěyǐ bìmiǎn hěn duō bú bìyào de máfan.`,
+                            viet: `Chính xác, chuẩn bị kỹ từ trước vô cùng quan trọng, như vậy có thể tránh được nhiều phiền phức không đáng có.`
+                        },
+                        {
+                            speaker: 'Nhân vật A',
+                            hanzi: `那对于刚来中国的越南留学生或者游客，你有什么好的建议吗？`,
+                            pinyin: `Nà duìyú gāng lái Zhōngguó de Yuènán liúxuéshēng huòzhě yóukè, nǐ yǒu shénme hǎo de jiànyì ma?`,
+                            viet: `Vậy đối với du học sinh hoặc du khách Việt Nam mới sang Trung Quốc, bạn có lời khuyên hữu ích nào không?`
+                        },
+                        {
+                            speaker: 'Nhân vật B',
+                            hanzi: `最重要是多听多开口交流，熟悉“${meta.kw}”相关的表达方式就会越来越顺利！`,
+                            pinyin: `Zuì zhòngyào shì duō tīng duō kāikǒu jiāoliú, shúxī “${meta.py}” xiāngguān de biǎodá fāngshì jiù huì yuèláiyuè shùnlì!`,
+                            viet: `Quan trọng nhất là nghe nhiều và mạnh dạn mở lời giao tiếp, nắm vững cách diễn đạt liên quan tới "${meta.mean.toLowerCase()}" thì sẽ ngày càng thuận lợi!`
+                        }
+                    ];
+
+                    const vocab = expandVocabularyForLevel([
+                        { word: meta.kw, pinyin: meta.py, meaning: meta.mean },
+                        { word: '话题', pinyin: 'huàtí', meaning: 'Chủ đề cuộc trò chuyện' },
+                        { word: '经验', pinyin: 'jīngyàn', meaning: 'Kinh nghiệm thực tế' },
+                        { word: '避免', pinyin: 'bìmiǎn', meaning: 'Tránh khỏi, ngăn ngừa' },
+                        { word: '建议', pinyin: 'jiànyì', meaning: 'Lời khuyên, kiến nghị' }
+                    ], meta, meta.hsk);
+
+                    const quiz = [
+                        {
+                            question: `Bài nghe "${meta.vi}" tập trung nhấn mạnh từ khóa trọng tâm nào?`,
+                            options: [
+                                `${meta.kw} (${meta.mean})`,
+                                '只看书不说话 (Chỉ đọc sách không nói)',
+                                '完全不需要准备 (Hoàn toàn không cần chuẩn bị)',
+                                '放弃学习 (Từ bỏ việc học)'
+                            ],
+                            correctIndex: 0,
+                            explanation: `Trong hội thoại, hai nhân vật nhắc trực tiếp đến từ khóa trọng tâm "${meta.kw}" (${meta.py} - ${meta.mean}).`
+                        },
+                        {
+                            question: 'Theo Nhân vật B, lời khuyên quan trọng nhất dành cho người học là gì?',
+                            options: [
+                                'Không cần giao tiếp với người bản xứ',
+                                'Nghe nhiều, mạnh dạn mở lời giao tiếp và nắm vững cách diễn đạt thực tế',
+                                'Chỉ cần tra từ điển là đủ',
+                                'Chờ người khác主動 giúp đỡ'
+                            ],
+                            correctIndex: 1,
+                            explanation: 'Nhân vật B khuyên: "最重要是多听多开口交流..." (Quan trọng nhất là nghe nhiều và mạnh dạn mở lời giao tiếp).'
+                        }
+                    ];
+
+                    fullList.push({
+                        id: `topic-${tIdx + 1}-lesson-${indexInTopic + 1}`,
+                        orderDifficulty: meta.hsk * 10 + indexInTopic,
+                        topicIndex: indexInTopic + 1,
+                        level,
+                        hskBadge,
+                        topic: topicName,
+                        durationText,
+                        durationCategory,
+                        titleZh: meta.zh,
+                        titleVi: meta.vi,
+                        completed: false,
+                        dialogue,
+                        vocab,
+                        quiz
+                    });
+                });
+            });
+
+            const extendedExercises = buildThemedExerciseLessons();
+            return [...fullList, ...extendedExercises].sort((a, b) => a.orderDifficulty - b.orderDifficulty);
+        }
+
+        // ==========================================
+        // MAIN APPLICATION CONTROLLER
+        // ==========================================
+        const app = {
+            lessons: buildComplete100Lessons(),
+            activeLessonId: 'topic-1-lesson-1',
+            activeSentenceIndex: 0,
+            isPlaying: false,
+            loopSingleSentence: false,
+            playbackSpeed: 1.0,
+            
+            // Filters
+            filterLevel: 'all',
+            filterTopic: 'all',
+            filterDuration: 'all',
+            searchQuery: '',
+
+            // Subtitle Layers Visibility
+            showHanzi: true,
+            showPinyin: true,
+            showViet: true,
+            isBlindMode: false,
+
+            // Audio & Putonghua Prosody Engine State
+            synth: window.speechSynthesis,
+            currentUtterance: null,
+            activeAudioElement: null,
+            zhVoices: [],
+            selectedVoiceURI: 'auto',
+            useAutoAIStudio: false,
+            audioCache: {}, // Cache generated audio URLs for instant replay
+            mediaRecorder: null,
+            recordingChunks: [],
+            recordingUrl: null,
+            recordingBlob: null,
+            recordingDuration: 0,
+            recordingStartedAt: 0,
+            recognition: null,
+            recognitionText: '',
+            vocabReview: { mode: 'flashcard', index: 0, flipped: false, score: 0, answered: 0, options: [] },
+            studyStats: (() => { try { return JSON.parse(localStorage.getItem('tingli-study-stats') || '{}') || {}; } catch (e) { return {}; } })(),
+            savedVocab: (() => { try { const v = JSON.parse(localStorage.getItem('tingli-vocab-bank') || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } })(),
+
+            init() {
+                this.restoreCompletedLessons();
+                this.renderLessonList();
+                this.loadLesson(this.activeLessonId);
+                this.updateHeaderStats();
+                this.updateSavedVocabCount();
+                this.ensureStudyDay();
+                this.updateStreakDisplay();
+
+                // Load and rank Mandarin Putonghua voices
+                this.loadMandarinVoices();
+                if (this.synth && this.synth.onvoiceschanged !== undefined) {
+                    this.synth.onvoiceschanged = () => this.loadMandarinVoices();
+                }
+            },
+
+            restoreCompletedLessons() {
+                try {
+                    const ids = JSON.parse(localStorage.getItem('tingli-completed-lessons') || '[]');
+                    if (!Array.isArray(ids)) return;
+                    const set = new Set(ids);
+                    this.lessons.forEach(l => { l.completed = set.has(l.id); });
+                } catch (e) {
+                    console.warn('Không đọc được tiến độ bài học đã lưu', e);
+                }
+            },
+
+            saveCompletedLessons() {
+                const ids = this.lessons.filter(l => l.completed).map(l => l.id);
+                localStorage.setItem('tingli-completed-lessons', JSON.stringify(ids));
+            },
+
+            getStudyStreak() {
+                let streak = 0;
+                for (let i = 0; i < 365; i++) {
+                    const d = new Date();
+                    d.setHours(12, 0, 0, 0);
+                    d.setDate(d.getDate() - i);
+                    const key = this.dateKey(d);
+                    const day = this.studyStats[key];
+                    const active = !!(day && ((day.listens || 0) > 0 || (day.vocabRemembered || 0) > 0 || (day.lessonsCompleted || 0) > 0));
+                    if (active) streak += 1;
+                    else if (i > 0) break; // hôm nay chưa học vẫn giữ chuỗi đến hôm qua
+                    else break;
+                }
+                // Nếu hôm nay chưa có hoạt động nhưng hôm qua có → chuỗi vẫn tính từ hôm qua
+                if (streak === 0) {
+                    for (let i = 1; i < 365; i++) {
+                        const d = new Date();
+                        d.setHours(12, 0, 0, 0);
+                        d.setDate(d.getDate() - i);
+                        const key = this.dateKey(d);
+                        const day = this.studyStats[key];
+                        const active = !!(day && ((day.listens || 0) > 0 || (day.vocabRemembered || 0) > 0 || (day.lessonsCompleted || 0) > 0));
+                        if (active) streak += 1;
+                        else break;
+                    }
+                }
+                return streak;
+            },
+
+            updateStreakDisplay() {
+                const el = document.getElementById('streakCount');
+                if (el) el.textContent = String(this.getStudyStreak());
+            },
+
+            // Rank system voices so Mainland Putonghua (zh-CN) Neural/Natural voices come first
+            loadMandarinVoices() {
+                if (!this.synth) return;
+                const allVoices = this.synth.getVoices() || [];
+                const chineseVoices = allVoices.filter(v => {
+                    const lang = v.lang.toLowerCase();
+                    const name = v.name.toLowerCase();
+                    return (lang === 'zh-cn' || lang === 'zh_cn' || lang.includes('cmn-hans-cn') || name.includes('mandarin') || name.includes('普通话')) && !lang.includes('zh-tw') && !lang.includes('zh-hk');
+                });
+
+                // Score voices by Putonghua authenticity & neural prosody quality
+                const scoreVoice = (v) => {
+                    let score = 0;
+                    const name = v.name.toLowerCase();
+                    const lang = v.lang.toLowerCase();
+
+                    // Prefer Mainland China Standard Putonghua (zh-CN) over HK Cantonese or TW
+                    if (lang === 'zh-cn' || lang === 'zh_cn' || lang.includes('cmn-hans-cn')) score += 80;
+
+                    // High-quality neural voices (Microsoft Xiaoxiao, Yunxi, Yunjian, Google 普通话, Apple Tingting/Lili)
+                    if (name.includes('natural') || name.includes('neural') || name.includes('online')) score += 40;
+                    if (name.includes('xiaoxiao') || name.includes('yunxi') || name.includes('yunjian') || name.includes('xiaoyi')) score += 35;
+                    if (name.includes('tingting') || name.includes('ting-ting') || name.includes('lili') || name.includes('siri')) score += 30;
+                    if (name.includes('google') && name.includes('普通话')) score += 25;
+
+                    return score;
+                };
+
+                this.zhVoices = chineseVoices.sort((a, b) => scoreVoice(b) - scoreVoice(a));
+
+                const selector = document.getElementById('voiceSelector');
+                if (!selector) return;
+
+                if (this.zhVoices.length === 0) {
+                    selector.innerHTML = `<option value="auto">🎙️ Giọng AI Phổ thông mặc định</option>`;
+                    return;
+                }
+
+                const optionsHtml = [
+                    `<option value="auto">🎙️ Tự động (${this.zhVoices[0].name.replace(/Microsoft |Google /g, '')})</option>`,
+                    ...this.zhVoices.map(v => {
+                        const isNeural = v.name.toLowerCase().includes('natural') || v.name.toLowerCase().includes('neural');
+                        const tag = isNeural ? '★ Chuẩn Bắc Kinh' : v.lang;
+                        return `<option value="${v.voiceURI}">${v.name} (${tag})</option>`;
+                    })
+                ];
+                selector.innerHTML = optionsHtml.join('');
+                selector.value = this.selectedVoiceURI;
+            },
+
+            selectSystemVoice(voiceURI) {
+                this.selectedVoiceURI = voiceURI;
+                this.showToast('Đã cập nhật giọng đọc tiếng Phổ thông!');
+                if (this.isPlaying) {
+                    this.speakCurrentSentence();
+                }
+            },
+
+            toggleAutoAIStudioMode() {
+                this.useAutoAIStudio = !this.useAutoAIStudio;
+                const btn = document.getElementById('autoAiVoiceBtn');
+                const statusEl = document.getElementById('voiceStatusDisplay');
+                if (this.useAutoAIStudio) {
+                    if (btn) btn.className = 'px-3 py-1.5 rounded-xl bg-amber-500 text-slate-950 text-xs font-bold transition flex items-center gap-1.5 shadow-sm';
+                    if (statusEl) statusEl.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> Giọng AI Studio Bắc Kinh (Ngữ điệu tự nhiên)`;
+                    this.showToast('🎙️ Đã bật chế độ luôn phát bằng Giọng AI Studio chuẩn ngữ điệu Bắc Kinh!');
+                } else {
+                    if (btn) btn.className = 'px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-medium text-slate-200 transition flex items-center gap-1.5';
+                    if (statusEl) statusEl.innerHTML = `<i class="fa-solid fa-volume-high"></i> Chuẩn Phổ Thông (普通话)`;
+                    this.showToast('Đã chuyển về giọng đọc nhanh trên thiết bị');
+                }
+            },
+
+            // Normalize Chinese text punctuation to create natural Putonghua breathing & tone sandhi pauses
+            normalizePutonghuaText(hanzi) {
+                if (!hanzi) return '';
+                return hanzi
+                    .replace(/\s+/g, '')
+                    .replace(/，/g, '， ')
+                    .replace(/。/g, '。 ')
+                    .replace(/！/g, '！ ')
+                    .replace(/？/g, '？ ')
+                    .replace(/、/g, '、 ');
+            },
+
+            // --- FILTERING & LIST RENDERING ---
+            getFilteredLessons() {
+                const q = this.searchQuery.trim().toLowerCase();
+                return this.lessons
+                    .filter(item => {
+                        const matchLevel = this.filterLevel === 'all' || item.level === this.filterLevel;
+                        const matchTopic = this.filterTopic === 'all' || item.topic === this.filterTopic;
+                        const matchDuration = this.filterDuration === 'all' || item.durationCategory === this.filterDuration;
+                        const matchSearch = !q || item.titleZh.toLowerCase().includes(q) || item.titleVi.toLowerCase().includes(q) || item.topic.toLowerCase().includes(q);
+                        return matchLevel && matchTopic && matchDuration && matchSearch;
+                    })
+                    .sort((a, b) => a.orderDifficulty - b.orderDifficulty);
+            },
+
+            setSearchQuery(val) {
+                this.searchQuery = val;
+                this.renderLessonList();
+            },
+
+            setLevelFilter(level) {
+                this.filterLevel = level;
+                document.querySelectorAll('.level-btn').forEach(btn => {
+                    if (btn.dataset.level === level) {
+                        btn.className = 'level-btn px-3 py-1.5 rounded-xl text-xs font-semibold transition whitespace-nowrap bg-brand-600 text-white shadow-sm';
+                    } else {
+                        btn.className = 'level-btn px-3 py-1.5 rounded-xl text-xs font-semibold transition whitespace-nowrap bg-slate-100 text-slate-600 hover:bg-slate-200';
+                    }
+                });
+                this.renderLessonList();
+            },
+
+            setTopicFilter(topic) {
+                this.filterTopic = topic;
+                this.renderLessonList();
+            },
+
+            setDurationFilter(duration) {
+                this.filterDuration = duration;
+                this.renderLessonList();
+            },
+
+            resetFilter() {
+                this.filterLevel = 'all';
+                this.filterTopic = 'all';
+                this.filterDuration = 'all';
+                this.searchQuery = '';
+                document.getElementById('topicSelect').value = 'all';
+                document.getElementById('durationSelect').value = 'all';
+                const searchInput = document.getElementById('searchLessonInput');
+                if (searchInput) searchInput.value = '';
+                this.setLevelFilter('all');
+            },
+
+            renderLessonList() {
+                const container = document.getElementById('lessonListContainer');
+                const filtered = this.getFilteredLessons();
+                document.getElementById('filteredLessonCount').textContent = filtered.length;
+
+                if (filtered.length === 0) {
+                    container.innerHTML = `
+                        <div class="bg-white rounded-2xl p-6 text-center border border-slate-200">
+                            <i class="fa-solid fa-magnifying-glass text-slate-300 text-3xl mb-2"></i>
+                            <p class="text-sm font-semibold text-slate-700">Không tìm thấy bài học phù hợp</p>
+                            <p class="text-xs text-slate-400 mt-1 mb-3">Hãy thử đổi bộ lọc hoặc tạo bài học mới bằng AI</p>
+                            <button onclick="app.resetFilter()" class="text-xs font-semibold text-brand-600 hover:underline">Xóa bộ lọc</button>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = filtered.map((lesson, idx) => {
+                    const isSelected = lesson.id === this.activeLessonId;
+                    const levelColors = {
+                        beginner: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+                        intermediate: 'bg-blue-100 text-blue-800 border-blue-200',
+                        advanced: 'bg-purple-100 text-purple-800 border-purple-200'
+                    };
+
+                    return `
+                        <div onclick="app.loadLesson('${lesson.id}')" 
+                             class="cursor-pointer rounded-2xl p-4 transition border ${isSelected ? 'bg-brand-50/70 border-brand-500 shadow-sm ring-1 ring-brand-500' : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/60'}">
+                            <div class="flex items-center justify-between gap-2 mb-2">
+                                <span class="text-[11px] font-bold px-2 py-0.5 rounded-md border ${levelColors[lesson.level]}">
+                                    #${idx + 1} • ${lesson.hskBadge}${lesson.isExercise ? ' · Bài luyện' : ''}
+                                </span>
+                                <div class="flex items-center space-x-2 text-xs text-slate-400">
+                                    <span><i class="fa-regular fa-clock mr-1"></i>${lesson.durationText}</span>
+                                    ${lesson.completed ? '<i class="fa-solid fa-circle-check text-emerald-500" title="Đã hoàn thành"></i>' : ''}
+                                </div>
+                            </div>
+                            <h3 class="font-bold font-chinese text-base text-slate-900 leading-snug">${lesson.titleZh}</h3>
+                            <p class="text-xs text-slate-600 mt-0.5 line-clamp-1">${lesson.titleVi}</p>
+                            <div class="mt-2.5 flex items-center justify-between text-[11px] text-slate-400">
+                                <span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md font-medium">${lesson.topic}</span>
+                                <span>${lesson.dialogue.length} câu thoại</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            },
+
+            // --- LESSON VIEW & SUBTITLES ---
+            getActiveLesson() {
+                return this.lessons.find(l => l.id === this.activeLessonId) || this.lessons[0];
+            },
+
+            loadLesson(lessonId) {
+                this.stopPlayback();
+                this.activeLessonId = lessonId;
+                this.activeSentenceIndex = 0;
+
+                const lesson = this.getActiveLesson();
+                
+                // Update Header Badges
+                document.getElementById('activeLevelBadge').textContent = lesson.hskBadge;
+                document.getElementById('activeTopicBadge').textContent = lesson.topic;
+                document.getElementById('activeDuration').textContent = lesson.durationText;
+                document.getElementById('activeTitleZh').textContent = lesson.titleZh;
+                document.getElementById('activeTitleVi').textContent = lesson.titleVi;
+                document.getElementById('vocabCountBadge').textContent = lesson.vocab.length;
+
+                this.updateCompleteButtonUI(lesson.completed);
+                this.renderLessonList();
+                this.renderTranscript();
+                this.renderVocab();
+                this.renderQuiz();
+                this.updateAudioProgressUI();
+            },
+
+            renderTranscript() {
+                const lesson = this.getActiveLesson();
+                const listEl = document.getElementById('transcriptList');
+
+                listEl.innerHTML = lesson.dialogue.map((line, idx) => {
+                    const isActive = idx === this.activeSentenceIndex;
+                    return `
+                        <div id="sentence-row-${idx}" 
+                             onclick="app.playSpecificSentence(${idx})"
+                             class="p-4 rounded-2xl border border-slate-200 transition cursor-pointer hover:border-brand-300 ${isActive ? 'sentence-active shadow-sm' : 'bg-white'}">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="text-xs font-bold uppercase tracking-wider ${isActive ? 'text-brand-600' : 'text-slate-400'}">
+                                    <i class="fa-regular fa-user mr-1"></i>${line.speaker}
+                                </span>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-xs text-slate-400">Câu ${idx + 1}</span>
+                                    <button onclick="event.stopPropagation(); app.playSpecificSentence(${idx})" class="w-7 h-7 rounded-full ${isActive ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-brand-100 hover:text-brand-600'} flex items-center justify-center text-xs transition">
+                                        <i class="fa-solid fa-volume-high"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Chinese Hanzi Layer -->
+                            <p class="font-chinese text-lg sm:text-xl font-medium text-slate-900 leading-relaxed transition ${this.showHanzi && !this.isBlindMode ? '' : 'blur-md select-none opacity-40'}">
+                                ${line.hanzi}
+                            </p>
+
+                            <!-- Pinyin Layer -->
+                            <p class="text-xs sm:text-sm text-brand-600 font-medium mt-1 transition ${this.showPinyin && !this.isBlindMode ? '' : 'hidden'}">
+                                ${line.pinyin}
+                            </p>
+
+                            <!-- Vietnamese Translation Layer -->
+                            <p class="text-xs sm:text-sm text-slate-600 mt-1.5 pt-1.5 border-t border-slate-100 transition ${this.showViet && !this.isBlindMode ? '' : 'hidden'}">
+                                <span class="text-slate-400 font-medium">Dịch:</span> ${line.viet}
+                            </p>
+                        </div>
+                    `;
+                }).join('');
+            },
+
+            renderVocab() {
+                const lesson = this.getActiveLesson();
+                const grid = document.getElementById('vocabGrid');
+
+                grid.innerHTML = lesson.vocab.map(item => `
+                    <div class="p-4 rounded-2xl border border-slate-200 bg-slate-50/60 hover:bg-white hover:shadow-sm transition flex items-start justify-between">
+                        <div>
+                            <div class="flex items-baseline space-x-2">
+                                <h4 class="font-chinese text-xl font-bold text-slate-900">${item.word}</h4>
+                                <span class="text-xs font-semibold text-brand-600 bg-brand-50 px-2 py-0.5 rounded-md">${item.pinyin}</span>
+                            </div>
+                            <p class="text-sm text-slate-600 mt-1">${item.meaning}</p>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <button onclick='app.speakWord(${JSON.stringify(item.word)})' title="Nghe phát âm từ này" class="w-9 h-9 rounded-xl bg-white border border-slate-200 hover:border-brand-400 text-slate-700 hover:text-brand-600 flex items-center justify-center transition shadow-sm"><i class="fa-solid fa-volume-low"></i></button>
+                            <button onclick='app.toggleSaveVocab(${JSON.stringify(item)})' title="Lưu vào kho từ vựng" class="w-9 h-9 rounded-xl ${this.isVocabSaved(item) ? 'bg-amber-100 border-amber-300 text-amber-600' : 'bg-white border-slate-200 text-slate-400 hover:text-amber-600'} border flex items-center justify-center transition shadow-sm"><i class="fa-${this.isVocabSaved(item) ? 'solid' : 'regular'} fa-bookmark"></i></button>
+                        </div>
+                    </div>
+                `).join('');
+            },
+
+            renderQuiz() {
+                const lesson = this.getActiveLesson();
+                const container = document.getElementById('quizContainer');
+
+                container.innerHTML = lesson.quiz.map((q, qIdx) => `
+                    <div class="p-5 rounded-2xl border border-slate-200 bg-white space-y-3">
+                        <h4 class="font-bold text-slate-800 text-sm sm:text-base">
+                            <span class="text-brand-600 mr-1">Câu ${qIdx + 1}:</span> ${q.question}
+                        </h4>
+                        <div class="space-y-2" id="quiz-options-${qIdx}">
+                            ${q.options.map((opt, oIdx) => `
+                                <button onclick="app.checkQuizAnswer(${qIdx}, ${oIdx})" 
+                                        class="w-full text-left px-4 py-2.5 rounded-xl border border-slate-200 hover:border-slate-400 text-sm text-slate-700 transition flex items-center justify-between">
+                                    <span>${opt}</span>
+                                    <i class="fa-regular fa-circle text-slate-300"></i>
+                                </button>
+                            `).join('')}
+                        </div>
+                        <div id="quiz-feedback-${qIdx}" class="hidden p-3 rounded-xl text-xs"></div>
+                    </div>
+                `).join('');
+            },
+
+            checkQuizAnswer(qIdx, selectedIdx) {
+                const lesson = this.getActiveLesson();
+                const quizItem = lesson.quiz[qIdx];
+                const feedbackEl = document.getElementById(`quiz-feedback-${qIdx}`);
+                const optionsContainer = document.getElementById(`quiz-options-${qIdx}`);
+                const buttons = optionsContainer.querySelectorAll('button');
+
+                buttons.forEach((btn, idx) => {
+                    btn.classList.remove('bg-emerald-50', 'border-emerald-500', 'text-emerald-900', 'bg-rose-50', 'border-rose-500', 'text-rose-900');
+                    if (idx === quizItem.correctIndex) {
+                        btn.classList.add('bg-emerald-50', 'border-emerald-500', 'text-emerald-900', 'font-semibold');
+                        btn.querySelector('i').className = 'fa-solid fa-circle-check text-emerald-600';
+                    } else if (idx === selectedIdx) {
+                        btn.classList.add('bg-rose-50', 'border-rose-500', 'text-rose-900');
+                        btn.querySelector('i').className = 'fa-solid fa-circle-xmark text-rose-600';
+                    }
+                });
+
+                feedbackEl.classList.remove('hidden');
+                if (selectedIdx === quizItem.correctIndex) {
+                    feedbackEl.className = 'p-3 rounded-xl text-xs bg-emerald-50 text-emerald-800 border border-emerald-200';
+                    feedbackEl.innerHTML = `<strong>🎉 Chính xác!</strong> ${quizItem.explanation}`;
+                } else {
+                    feedbackEl.className = 'p-3 rounded-xl text-xs bg-rose-50 text-rose-800 border border-rose-200';
+                    feedbackEl.innerHTML = `<strong>💡 Chưa đúng rồi!</strong> ${quizItem.explanation}`;
+                }
+            },
+
+            // --- SUBTITLE CONTROLS & TABS ---
+            switchTab(tabName) {
+                ['transcript', 'vocab', 'quiz'].forEach(t => {
+                    const panel = document.getElementById(`panel-${t}`);
+                    const tabBtn = document.getElementById(`tab-${t}`);
+                    if (t === tabName) {
+                        panel.classList.remove('hidden');
+                        tabBtn.className = 'tab-btn px-3.5 py-1.5 rounded-lg text-xs font-bold bg-white text-slate-900 shadow-sm transition';
+                    } else {
+                        panel.classList.add('hidden');
+                        tabBtn.className = 'tab-btn px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition';
+                    }
+                });
+
+                const subToggles = document.getElementById('subtitleToggles');
+                subToggles.style.display = tabName === 'transcript' ? 'flex' : 'none';
+            },
+
+            toggleSubtitleLayer(layer) {
+                if (this.isBlindMode) {
+                    this.isBlindMode = false;
+                    this.updateSubtitleToggleButtons();
+                }
+                if (layer === 'hanzi') this.showHanzi = !this.showHanzi;
+                if (layer === 'pinyin') this.showPinyin = !this.showPinyin;
+                if (layer === 'viet') this.showViet = !this.showViet;
+
+                this.updateSubtitleToggleButtons();
+                this.renderTranscript();
+            },
+
+            toggleBlindListening() {
+                this.isBlindMode = !this.isBlindMode;
+                this.updateSubtitleToggleButtons();
+                this.renderTranscript();
+                this.showToast(this.isBlindMode ? 'Đã bật chế độ Nghe Mù (Ẩn toàn bộ phụ đề)' : 'Đã hiển thị lại phụ đề');
+            },
+
+            updateSubtitleToggleButtons() {
+                const setBtnState = (id, active) => {
+                    const el = document.getElementById(id);
+                    el.className = active && !this.isBlindMode
+                        ? 'px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-white transition'
+                        : 'px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-200 text-slate-600 transition';
+                };
+                setBtnState('toggle-hanzi', this.showHanzi);
+                setBtnState('toggle-pinyin', this.showPinyin);
+                setBtnState('toggle-viet', this.showViet);
+
+                const blindBtn = document.getElementById('toggle-blind');
+                blindBtn.className = this.isBlindMode
+                    ? 'px-2.5 py-1 rounded-lg text-xs font-semibold bg-brand-600 text-white shadow-sm transition'
+                    : 'px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-200 text-slate-700 hover:bg-slate-300 transition';
+            },
+
+            // --- AUDIO ENGINE (WEB SPEECH TTS + GEMINI STUDIO TTS) ---
+            togglePlay() {
+                if (this.isPlaying) {
+                    this.stopPlayback();
+                } else {
+                    this.startPlayback();
+                }
+            },
+
+            startPlayback() {
+                if (!this.isPlaying) this.recordStudyEvent('listen');
+                this.isPlaying = true;
+                this.updatePlayButtonUI();
+                this.speakCurrentSentence();
+            },
+
+            stopPlayback() {
+                this.isPlaying = false;
+                if (this.synth) {
+                    this.synth.cancel();
+                }
+                if (this.activeAudioElement) {
+                    this.activeAudioElement.pause();
+                    this.activeAudioElement = null;
+                }
+                this.updatePlayButtonUI();
+            },
+
+            playSpecificSentence(idx) {
+                this.activeSentenceIndex = idx;
+                this.renderTranscript();
+                this.updateAudioProgressUI();
+                this.startPlayback();
+            },
+
+            prevSentence() {
+                if (this.activeSentenceIndex > 0) {
+                    this.activeSentenceIndex--;
+                    this.renderTranscript();
+                    this.updateAudioProgressUI();
+                    if (this.isPlaying) this.speakCurrentSentence();
+                }
+            },
+
+            nextSentence() {
+                const lesson = this.getActiveLesson();
+                if (this.activeSentenceIndex < lesson.dialogue.length - 1) {
+                    this.activeSentenceIndex++;
+                    this.renderTranscript();
+                    this.updateAudioProgressUI();
+                    if (this.isPlaying) this.speakCurrentSentence();
+                } else {
+                    this.stopPlayback();
+                }
+            },
+
+            seekByProgressBar(event) {
+                const lesson = this.getActiveLesson();
+                const rect = event.currentTarget.getBoundingClientRect();
+                const clickRatio = (event.clientX - rect.left) / rect.width;
+                const targetIdx = Math.min(
+                    lesson.dialogue.length - 1,
+                    Math.max(0, Math.floor(clickRatio * lesson.dialogue.length))
+                );
+                this.playSpecificSentence(targetIdx);
+            },
+
+            cycleSpeed() {
+                const speeds = [0.75, 0.9, 1.0, 1.25];
+                const nextIdx = (speeds.indexOf(this.playbackSpeed) + 1) % speeds.length;
+                this.playbackSpeed = speeds[nextIdx];
+                document.getElementById('speedBtn').textContent = `${this.playbackSpeed}x`;
+                this.showToast(`Tốc độ nghe: ${this.playbackSpeed}x`);
+                if (this.isPlaying) {
+                    this.speakCurrentSentence();
+                }
+            },
+
+            toggleLoopSentence() {
+                this.loopSingleSentence = !this.loopSingleSentence;
+                const btn = document.getElementById('loopSentenceBtn');
+                if (this.loopSingleSentence) {
+                    btn.className = 'px-3 py-1.5 rounded-xl bg-brand-500 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-sm';
+                    this.showToast('Đã bật lặp lại 1 câu liên tục');
+                } else {
+                    btn.className = 'px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-medium text-slate-200 transition flex items-center gap-1.5';
+                    this.showToast('Đã tắt lặp lại 1 câu');
+                }
+            },
+
+            speakCurrentSentence() {
+                const lesson = this.getActiveLesson();
+                const line = lesson.dialogue[this.activeSentenceIndex];
+                if (!line) return;
+
+                // Scroll active row into view smoothly
+                const rowEl = document.getElementById(`sentence-row-${this.activeSentenceIndex}`);
+                if (rowEl) {
+                    rowEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+
+                if (!this.synth) {
+                    this.showToast('Thiết bị chưa hỗ trợ đọc tiếng Trung. Hãy mở bằng Chrome, Edge hoặc Safari mới nhất.');
+                    this.stopPlayback();
+                    return;
+                }
+                this.synth.cancel();
+
+                const cleanText = this.normalizePutonghuaText(line.hanzi);
+                const utterance = new SpeechSynthesisUtterance(cleanText);
+                utterance.lang = 'zh-CN';
+                // Slightly measured cadence (0.94x base) improves tone clarity (thanh 1-2-3-4) in Web Speech
+                utterance.rate = Number((this.playbackSpeed * 0.88).toFixed(2));
+                utterance.volume = 1;
+                utterance.pitch = 1.0;
+
+                // Do not alter pitch between speakers: tones remain faithful to standard Putonghua.
+                const isSecondSpeaker = this.activeSentenceIndex % 2 === 1;
+                if (this.selectedVoiceURI !== 'auto') {
+                    const chosen = this.zhVoices.find(v => v.voiceURI === this.selectedVoiceURI);
+                    if (chosen) utterance.voice = chosen;
+                } else if (this.zhVoices.length > 0) {
+                    // Use top-ranked zh-CN voice, or alternate between top 2 zh-CN voices for Speaker A / B
+                    const cnVoices = this.zhVoices.filter(v => v.lang.toLowerCase().includes('cn'));
+                    if (cnVoices.length >= 2 && isSecondSpeaker) {
+                        utterance.voice = cnVoices[1];
+                    } else {
+                        utterance.voice = this.zhVoices[0];
+                    }
+                }
+                utterance.onend = () => {
+                    this.advanceAfterSentenceEnd();
+                };
+
+                utterance.onerror = () => {
+                    this.stopPlayback();
+                };
+
+                this.currentUtterance = utterance;
+                this.synth.speak(utterance);
+            },
+
+            advanceAfterSentenceEnd() {
+                if (!this.isPlaying) return;
+                const lesson = this.getActiveLesson();
+                if (this.loopSingleSentence) {
+                    setTimeout(() => {
+                        if (this.isPlaying) this.speakCurrentSentence();
+                    }, 450);
+                } else if (this.activeSentenceIndex < lesson.dialogue.length - 1) {
+                    this.activeSentenceIndex++;
+                    this.renderTranscript();
+                    this.updateAudioProgressUI();
+                    setTimeout(() => {
+                        if (this.isPlaying) this.speakCurrentSentence();
+                    }, 380);
+                } else {
+                    this.stopPlayback();
+                    this.showToast('🎉 Bạn đã nghe hết bài học này!');
+                }
+            },
+
+            speakWord(word) {
+                this.stopPlayback();
+                if (!this.synth) return this.showToast('Trình duyệt không hỗ trợ đọc tiếng Trung.');
+                const utterance = new SpeechSynthesisUtterance(this.normalizePutonghuaText(word));
+                utterance.lang = 'zh-CN';
+                const selected = this.selectedVoiceURI === 'auto' ? this.zhVoices[0] : this.zhVoices.find(v => v.voiceURI === this.selectedVoiceURI);
+                if (selected) utterance.voice = selected;
+                utterance.rate = 0.78;
+                utterance.pitch = 1.0;
+                this.synth.speak(utterance);
+            },
+
+            playStandardMandarinSentence() {
+                this.useAutoAIStudio = false;
+                this.startPlayback();
+            },
+
+            testMandarinVoice() {
+                this.stopPlayback();
+                if (!this.synth) return this.showToast('Trình duyệt không hỗ trợ Speech Synthesis.');
+                const u = new SpeechSynthesisUtterance('你好，很高兴认识你。请注意普通话的声调和语句停顿。');
+                u.lang = 'zh-CN';
+                const selected = this.selectedVoiceURI === 'auto' ? this.zhVoices[0] : this.zhVoices.find(v => v.voiceURI === this.selectedVoiceURI);
+                if (selected) u.voice = selected;
+                u.rate = 0.78; u.pitch = 1.0;
+                this.synth.speak(u);
+                this.showToast(selected ? `Đang thử: ${selected.name} · ${selected.lang}` : 'Đang thử giọng zh-CN mặc định của thiết bị');
+            },
+
+            // --- PERSONAL VOCABULARY BANK ---
+            vocabKey(item) { return `${item.word}|${item.pinyin}`; },
+            isVocabSaved(item) { return this.savedVocab.some(v => this.vocabKey(v) === this.vocabKey(item)); },
+            toggleSaveVocab(item) {
+                const key = this.vocabKey(item);
+                const found = this.savedVocab.findIndex(v => this.vocabKey(v) === key);
+                if (found >= 0) this.savedVocab.splice(found, 1);
+                else this.savedVocab.push({ ...item, learned: false, addedAt: Date.now() });
+                localStorage.setItem('tingli-vocab-bank', JSON.stringify(this.savedVocab));
+                this.updateSavedVocabCount(); this.renderVocab(); this.renderVocabBank();
+                this.showToast(found >= 0 ? 'Đã bỏ từ khỏi kho cá nhân' : 'Đã lưu từ vào kho cá nhân');
+            },
+            updateSavedVocabCount() { const el = document.getElementById('savedVocabCount'); if (el) el.textContent = this.savedVocab.length; },
+            openVocabBank() { document.getElementById('vocabBankModal').classList.remove('hidden'); this.renderVocabBank(); },
+            closeVocabBank() { document.getElementById('vocabBankModal').classList.add('hidden'); },
+            renderVocabBank() {
+                const el = document.getElementById('vocabBankList'); if (!el) return;
+                const q = (document.getElementById('vocabBankSearch')?.value || '').toLowerCase().trim();
+                const list = this.savedVocab.filter(v => !q || `${v.word} ${v.pinyin} ${v.meaning}`.toLowerCase().includes(q));
+                el.innerHTML = list.length ? list.map(item => `
+                    <div class="rounded-2xl border ${item.learned ? 'border-emerald-200 bg-emerald-50/50' : 'border-slate-200 bg-white'} p-4">
+                        <div class="flex items-start justify-between gap-2"><div><div class="flex items-baseline gap-2"><b class="font-chinese text-xl">${item.word}</b><span class="text-xs text-brand-600 font-semibold">${item.pinyin}</span></div><p class="text-sm text-slate-600 mt-1">${item.meaning}</p></div>
+                        <button onclick='app.speakWord(${JSON.stringify(item.word)})' class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-brand-100 text-slate-600"><i class="fa-solid fa-volume-low"></i></button></div>
+                        <div class="mt-3 flex gap-2"><button onclick='app.toggleLearnedVocab(${JSON.stringify(item.word)}, ${JSON.stringify(item.pinyin)})' class="text-xs font-semibold ${item.learned ? 'text-emerald-700' : 'text-slate-500'}"><i class="fa-solid ${item.learned ? 'fa-circle-check' : 'fa-circle'} mr-1"></i>${item.learned ? 'Đã nhớ' : 'Đánh dấu đã nhớ'}</button><button onclick='app.removeVocab(${JSON.stringify(item.word)}, ${JSON.stringify(item.pinyin)})' class="ml-auto text-xs text-rose-600">Xóa</button></div>
+                    </div>`).join('') : '<div class="sm:col-span-2 text-center py-12 text-slate-400"><i class="fa-solid fa-book-open text-3xl mb-2"></i><p>Kho đang trống. Hãy bấm biểu tượng bookmark ở từ vựng trong bài học.</p></div>';
+            },
+            toggleLearnedVocab(word, pinyin) { const v = this.savedVocab.find(x => x.word === word && x.pinyin === pinyin); if (v) { const wasLearned = v.learned; v.learned = !v.learned; localStorage.setItem('tingli-vocab-bank', JSON.stringify(this.savedVocab)); if (!wasLearned && v.learned) this.recordStudyEvent('vocab'); this.renderVocabBank(); this.renderProgressStats(); } },
+            removeVocab(word, pinyin) { this.savedVocab = this.savedVocab.filter(v => !(v.word === word && v.pinyin === pinyin)); localStorage.setItem('tingli-vocab-bank', JSON.stringify(this.savedVocab)); this.updateSavedVocabCount(); this.renderVocabBank(); this.renderVocab(); },
+            clearVocabBank() { if (!this.savedVocab.length) return; if (confirm('Xóa toàn bộ kho từ vựng cá nhân?')) { this.savedVocab = []; localStorage.removeItem('tingli-vocab-bank'); this.updateSavedVocabCount(); this.renderVocabBank(); this.renderVocab(); } },
+            exportVocabBank() { const csv = ['Từ,Pinyin,Nghĩa,Đã nhớ', ...this.savedVocab.map(v => [v.word, v.pinyin, v.meaning, v.learned ? 'Có' : 'Chưa'].map(x => `"${String(x).replaceAll('"','""')}"`).join(','))].join('\n'); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([`\ufeff${csv}`], {type:'text/csv;charset=utf-8'})); a.download = 'tingli-kho-tu-vung.csv'; a.click(); URL.revokeObjectURL(a.href); },
+
+            // --- LEGACY AI AUDIO FALLBACK (disabled without an API key) ---
+            async playGeminiStudioVoice(autoContinue = false) {
+                this.showToast('Đã dùng giọng zh-CN trên thiết bị để bảo đảm phát âm ổn định.');
+                this.startPlayback();
+                return;
+                const lesson = this.getActiveLesson();
+                const line = lesson.dialogue[this.activeSentenceIndex];
+                if (!line) return;
+
+                if (this.synth) this.synth.cancel();
+                if (this.activeAudioElement) {
+                    this.activeAudioElement.pause();
+                    this.activeAudioElement = null;
+                }
+
+                const cacheKey = `${lesson.id}-${this.activeSentenceIndex}`;
+                if (this.audioCache[cacheKey]) {
+                    this.playWavUrl(this.audioCache[cacheKey], autoContinue);
+                    return;
+                }
+
+                const btn = document.getElementById('geminiTtsBtn');
+                const originalHtml = btn ? btn.innerHTML : '';
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Đang chuẩn hóa ngữ điệu...</span>`;
+                }
+
+                try {
+                    const isSecondSpeaker = this.activeSentenceIndex % 2 === 1;
+                    // Aoede (Warm Female) & Orus/Kore (Clear Male/Firm) for distinct conversational roles
+                    const voiceName = isSecondSpeaker ? "Orus" : "Aoede";
+
+                    const apiKey = "";
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+                    const payload = {
+                        contents: [{
+                            parts: [{
+                                text: `请用标准、自然、地道的中国普通话（播音级北京语音）朗读以下句子，注意声调准确、第三声变调、轻声和自然的语句停顿与情感语调：\n${line.hanzi}`
+                            }]
+                        }],
+                        generationConfig: {
+                            responseModalities: ["AUDIO"],
+                            speechConfig: {
+                                voiceConfig: {
+                                    prebuiltVoiceConfig: { voiceName }
+                                }
+                            }
+                        }
+                    };
+
+                    const response = await this.fetchWithBackoff(apiUrl, payload);
+                    const result = await response.json();
+                    const part = result?.candidates?.[0]?.content?.parts?.[0];
+                    const audioData = part?.inlineData?.data;
+                    const mimeType = part?.inlineData?.mimeType || "audio/L16;rate=24000";
+
+                    if (audioData) {
+                        const rateMatch = mimeType.match(/rate=(\d+)/);
+                        const sampleRate = rateMatch ? parseInt(rateMatch[1], 10) : 24000;
+                        const pcmBuffer = this.base64ToArrayBuffer(audioData);
+                        const pcm16 = new Int16Array(pcmBuffer);
+                        const wavBlob = this.pcmToWav(pcm16, sampleRate);
+                        const audioUrl = URL.createObjectURL(wavBlob);
+
+                        this.audioCache[cacheKey] = audioUrl;
+                        this.playWavUrl(audioUrl, autoContinue);
+                    } else {
+                        this.useAutoAIStudio = false;
+                        this.speakCurrentSentence();
+                    }
+                } catch (err) {
+                    this.useAutoAIStudio = false;
+                    this.speakCurrentSentence();
+                } finally {
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = originalHtml;
+                    }
+                }
+            },
+
+            // Multi-speaker full conversation with authentic Putonghua prosody
+            async playFullDialogueGeminiTTS() {
+                this.showToast('Tính năng thu AI cần máy chủ có khóa API; hiện phát từng câu bằng giọng zh-CN.');
+                this.startPlayback();
+                return;
+                const lesson = this.getActiveLesson();
+                this.stopPlayback();
+
+                const fullCacheKey = `${lesson.id}-full-dialogue`;
+                if (this.audioCache[fullCacheKey]) {
+                    this.showToast('🎙️ Đang phát bản thu hội thoại 2 nhân vật chuẩn Phổ thông...');
+                    this.playWavUrl(this.audioCache[fullCacheKey], false);
+                    return;
+                }
+
+                const btn = document.getElementById('geminiFullTtsBtn');
+                const originalHtml = btn ? btn.innerHTML : '';
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Đang thu âm 2 giọng...</span>`;
+                }
+
+                try {
+                    const scriptLines = lesson.dialogue.map((line, idx) => {
+                        const role = idx % 2 === 0 ? 'SpeakerA' : 'SpeakerB';
+                        return `${role}: ${line.hanzi}`;
+                    }).join('\n');
+
+                    const promptText = `请用标准、自然、生动的中国普通话（北京语音）进行双人对话演绎，注意自然的对话节奏、轻声、儿化音和真实的情感语调：\n${scriptLines}`;
+
+                    const apiKey = "";
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+                    const payload = {
+                        contents: [{ parts: [{ text: promptText }] }],
+                        generationConfig: {
+                            responseModalities: ["AUDIO"],
+                            speechConfig: {
+                                multiSpeakerVoiceConfig: {
+                                    speakerVoiceConfigs: [
+                                        { speaker: "SpeakerA", voiceConfig: { prebuiltVoiceConfig: { voiceName: "Aoede" } } },
+                                        { speaker: "SpeakerB", voiceConfig: { prebuiltVoiceConfig: { voiceName: "Orus" } } }
+                                    ]
+                                }
+                            }
+                        }
+                    };
+
+                    const response = await this.fetchWithBackoff(apiUrl, payload);
+                    const result = await response.json();
+                    const part = result?.candidates?.[0]?.content?.parts?.[0];
+                    const audioData = part?.inlineData?.data;
+                    const mimeType = part?.inlineData?.mimeType || "audio/L16;rate=24000";
+
+                    if (audioData) {
+                        const rateMatch = mimeType.match(/rate=(\d+)/);
+                        const sampleRate = rateMatch ? parseInt(rateMatch[1], 10) : 24000;
+                        const pcmBuffer = this.base64ToArrayBuffer(audioData);
+                        const pcm16 = new Int16Array(pcmBuffer);
+                        const wavBlob = this.pcmToWav(pcm16, sampleRate);
+                        const audioUrl = URL.createObjectURL(wavBlob);
+
+                        this.audioCache[fullCacheKey] = audioUrl;
+                        this.showToast('✨ Đã tạo xong hội thoại 2 nhân vật chuẩn ngữ điệu Bắc Kinh!');
+                        this.playWavUrl(audioUrl, false);
+                    }
+                } catch (e) {
+                    this.showToast('Đang chuyển sang phát từng câu...');
+                    this.startPlayback();
+                } finally {
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = originalHtml;
+                    }
+                }
+            },
+
+            playWavUrl(audioUrl, autoContinue = false) {
+                this.activeAudioElement = new Audio(audioUrl);
+                this.activeAudioElement.playbackRate = this.playbackSpeed;
+                this.isPlaying = true;
+                this.updatePlayButtonUI();
+                this.activeAudioElement.onended = () => {
+                    if (autoContinue && this.isPlaying) {
+                        this.advanceAfterSentenceEnd();
+                    } else {
+                        this.isPlaying = false;
+                        this.updatePlayButtonUI();
+                    }
+                };
+                this.activeAudioElement.play();
+            },
+
+            base64ToArrayBuffer(base64) {
+                const binaryString = window.atob(base64);
+                const len = binaryString.length;
+                const bytes = new Uint8Array(len);
+                for (let i = 0; i < len; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+                return bytes.buffer;
+            },
+
+            pcmToWav(pcm16, sampleRate) {
+                const buffer = new ArrayBuffer(44 + pcm16.length * 2);
+                const view = new DataView(buffer);
+                const writeString = (offset, str) => {
+                    for (let i = 0; i < str.length; i++) {
+                        view.setUint8(offset + i, str.charCodeAt(i));
+                    }
+                };
+                writeString(0, 'RIFF');
+                view.setUint32(4, 36 + pcm16.length * 2, true);
+                writeString(8, 'WAVE');
+                writeString(12, 'fmt ');
+                view.setUint32(16, 16, true);
+                view.setUint16(20, 1, true);
+                view.setUint16(22, 1, true);
+                view.setUint32(24, sampleRate, true);
+                view.setUint32(28, sampleRate * 2, true);
+                view.setUint16(32, 2, true);
+                view.setUint16(34, 16, true);
+                writeString(36, 'data');
+                view.setUint32(40, pcm16.length * 2, true);
+
+                let offset = 44;
+                for (let i = 0; i < pcm16.length; i++, offset += 2) {
+                    view.setInt16(offset, pcm16[i], true);
+                }
+                return new Blob([buffer], { type: 'audio/wav' });
+            },
+
+            // --- DAILY LEARNING STATISTICS ---
+            dateKey(date = new Date()) {
+                const d = date instanceof Date ? date : new Date(date);
+                const y = d.getFullYear();
+                const m = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                return `${y}-${m}-${day}`;
+            },
+            ensureStudyDay() {
+                const key = this.dateKey();
+                if (!this.studyStats[key]) this.studyStats[key] = { listens: 0, lessonsCompleted: 0, vocabRemembered: 0, rememberedTotal: this.savedVocab.filter(v => v.learned).length };
+                this.saveStudyStats();
+            },
+            saveStudyStats() { localStorage.setItem('tingli-study-stats', JSON.stringify(this.studyStats)); },
+            recordStudyEvent(type) {
+                this.ensureStudyDay();
+                const day = this.studyStats[this.dateKey()];
+                if (type === 'listen') day.listens += 1;
+                if (type === 'lesson') day.lessonsCompleted += 1;
+                if (type === 'vocab') { day.vocabRemembered += 1; day.rememberedTotal = this.savedVocab.filter(v => v.learned).length; }
+                this.saveStudyStats();
+                this.updateStreakDisplay();
+            },
+            openProgressStats() { document.getElementById('progressStatsModal').classList.remove('hidden'); this.renderProgressStats(); },
+            closeProgressStats() { document.getElementById('progressStatsModal').classList.add('hidden'); },
+            renderProgressStats() {
+                this.ensureStudyDay();
+                const today = this.studyStats[this.dateKey()];
+                const remembered = this.savedVocab.filter(v => v.learned).length;
+                const total = this.savedVocab.length;
+                const completed = this.lessons.filter(l => l.completed).length;
+                const streak = this.getStudyStreak();
+                const cardStyles = {
+                    indigo: { box: 'bg-indigo-50 border-indigo-200', icon: 'text-indigo-500', label: 'text-indigo-700', value: 'text-indigo-900' },
+                    emerald: { box: 'bg-emerald-50 border-emerald-200', icon: 'text-emerald-500', label: 'text-emerald-700', value: 'text-emerald-900' },
+                    amber: { box: 'bg-amber-50 border-amber-200', icon: 'text-amber-500', label: 'text-amber-700', value: 'text-amber-900' },
+                    rose: { box: 'bg-rose-50 border-rose-200', icon: 'text-rose-500', label: 'text-rose-700', value: 'text-rose-900' }
+                };
+                document.getElementById('todayProgressCards').innerHTML = [
+                    ['fa-headphones', 'Lượt nghe hôm nay', today.listens, 'indigo'],
+                    ['fa-book-open', 'Bài đã hoàn thành', completed, 'emerald'],
+                    ['fa-brain', 'Từ đã nhớ', `${remembered}/${total}`, 'amber'],
+                    ['fa-fire', 'Chuỗi ngày học', `${streak} ngày`, 'rose']
+                ].map(([icon, label, value, color]) => {
+                    const s = cardStyles[color];
+                    return `<div class="rounded-2xl border p-4 ${s.box}"><i class="fa-solid ${icon} ${s.icon}"></i><p class="text-[11px] mt-2 ${s.label}">${label}</p><strong class="text-xl ${s.value}">${value}</strong></div>`;
+                }).join('');
+                this.updateStreakDisplay();
+                const max = Math.max(1, ...Object.values(this.studyStats).map(d => (d.listens || 0) + (d.vocabRemembered || 0)));
+                const chart = [];
+                for (let i = 6; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); const key = this.dateKey(d); const stat = this.studyStats[key] || { listens: 0, vocabRemembered: 0 }; const label = d.toLocaleDateString('vi-VN', { weekday: 'short', day: '2-digit' }); const listenWidth = Math.round((stat.listens / max) * 100); const vocabWidth = Math.round((stat.vocabRemembered / max) * 100); chart.push(`<div class="grid grid-cols-[58px_1fr_42px] items-center gap-2 text-[11px]"><span class="text-slate-500">${label}</span><div class="space-y-1"><div class="h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-indigo-500 rounded-full" style="width:${listenWidth}%"></div></div><div class="h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-amber-400 rounded-full" style="width:${vocabWidth}%"></div></div></div><span class="text-right text-slate-400">${stat.listens || 0}/${stat.vocabRemembered || 0}</span></div>`); }
+                document.getElementById('progressChart').innerHTML = chart.join('');
+                document.getElementById('rememberedVocabSummary').textContent = `${remembered}/${total} từ`;
+                document.getElementById('rememberedVocabProgress').style.width = `${total ? Math.round((remembered / total) * 100) : 0}%`;
+                document.getElementById('rememberedVocabHint').textContent = total ? `Bạn đã nhớ ${Math.round((remembered / total) * 100)}% số từ trong kho cá nhân.` : 'Hãy lưu từ mới vào kho để bắt đầu theo dõi.';
+            },
+
+            // --- VOCABULARY FLASHCARD & QUIZ ---
+            startVocabReview(mode = 'flashcard') {
+                if (!this.savedVocab.length) {
+                    this.showToast('Hãy lưu ít nhất một từ vào kho trước khi ôn tập.');
+                    return;
+                }
+                this.vocabReview = { mode, index: 0, flipped: false, score: 0, answered: 0, options: [] };
+                document.getElementById('reviewFlashcardBtn').className = mode === 'flashcard' ? 'px-3 py-1.5 rounded-lg bg-white shadow-sm text-xs font-bold text-slate-800' : 'px-3 py-1.5 rounded-lg text-xs font-bold text-slate-500';
+                document.getElementById('reviewQuizBtn').className = mode === 'quiz' ? 'px-3 py-1.5 rounded-lg bg-white shadow-sm text-xs font-bold text-slate-800' : 'px-3 py-1.5 rounded-lg text-xs font-bold text-slate-500';
+                this.renderVocabReview();
+            },
+
+            renderVocabReview() {
+                const panel = document.getElementById('vocabReviewPanel');
+                if (!panel || !this.savedVocab.length) return;
+                const review = this.vocabReview;
+                const item = this.savedVocab[review.index % this.savedVocab.length];
+                const progress = `${(review.index % this.savedVocab.length) + 1}/${this.savedVocab.length}`;
+                if (review.mode === 'flashcard') {
+                    panel.innerHTML = `
+                        <div class="flex items-center justify-between text-[11px] text-slate-400 mb-3"><span>Flashcard</span><span>${progress}</span></div>
+                        <button onclick="app.flipVocabCard()" class="w-full min-h-[150px] rounded-2xl bg-white border border-slate-200 hover:border-brand-300 shadow-sm p-5 text-center transition">
+                            ${review.flipped ? `<p class="text-xs text-slate-400 mb-2">Nghĩa tiếng Việt</p><p class="text-lg font-semibold text-slate-700">${item.meaning}</p><p class="text-sm text-brand-600 mt-2">${item.pinyin}</p>` : `<p class="text-xs text-slate-400 mb-2">Chữ Hán</p><p class="font-chinese text-4xl font-bold text-slate-900">${item.word}</p><p class="text-xs text-slate-400 mt-3">Bấm để lật thẻ</p>`}
+                        </button>
+                        <div class="flex items-center justify-center gap-2 mt-3"><button onclick="app.speakWord(${JSON.stringify(item.word)})" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-semibold text-slate-700"><i class="fa-solid fa-volume-low mr-1"></i>Nghe</button><button onclick="app.nextVocabReview()" class="px-3 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold">Đã nhớ · Từ tiếp theo <i class="fa-solid fa-arrow-right ml-1"></i></button></div>`;
+                } else {
+                    if (!review.options.length || review.options.itemKey !== this.vocabKey(item)) {
+                        const others = this.savedVocab.filter(v => this.vocabKey(v) !== this.vocabKey(item)).sort(() => Math.random() - 0.5).slice(0, 3);
+                        review.options = [item, ...others].sort(() => Math.random() - 0.5);
+                        review.options.itemKey = this.vocabKey(item);
+                    }
+                    panel.innerHTML = `
+                        <div class="flex items-center justify-between text-[11px] text-slate-400 mb-3"><span>Quiz · Điểm ${review.score}/${review.answered}</span><span>${progress}</span></div>
+                        <div class="rounded-2xl bg-white border border-slate-200 p-5 text-center"><p class="text-xs text-slate-400 mb-2">Chọn nghĩa đúng của từ:</p><p class="font-chinese text-4xl font-bold text-slate-900">${item.word}</p><p class="text-sm text-brand-600 mt-2">${item.pinyin}</p></div>
+                        <div class="grid grid-cols-1 gap-2 mt-3">${review.options.map((option, idx) => `<button onclick="app.answerVocabQuiz(${idx})" class="text-left px-3 py-2.5 rounded-xl border border-slate-200 bg-white hover:border-brand-400 text-sm text-slate-700 transition">${option.meaning}</button>`).join('')}</div>`;
+                }
+            },
+
+            flipVocabCard() { this.vocabReview.flipped = !this.vocabReview.flipped; this.renderVocabReview(); },
+            nextVocabReview() { this.vocabReview.index = (this.vocabReview.index + 1) % this.savedVocab.length; this.vocabReview.flipped = false; this.vocabReview.options = []; this.renderVocabReview(); },
+            answerVocabQuiz(optionIndex) {
+                const item = this.savedVocab[this.vocabReview.index % this.savedVocab.length];
+                const chosen = this.vocabReview.options[optionIndex];
+                this.vocabReview.answered += 1;
+                if (this.vocabKey(chosen) === this.vocabKey(item)) { this.vocabReview.score += 1; this.showToast('Chính xác!'); } else this.showToast(`Đáp án đúng: ${item.meaning}`);
+                this.vocabReview.index = (this.vocabReview.index + 1) % this.savedVocab.length;
+                this.vocabReview.options = [];
+                this.renderVocabReview();
+            },
+
+            // --- PRONUNCIATION RECORDING & COMPARISON ---
+            playPracticeTarget() {
+                this.stopPlayback();
+                this.startPlayback();
+            },
+
+            async toggleRecording() {
+                if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
+                    this.stopRecording();
+                } else {
+                    await this.startRecording();
+                }
+            },
+
+            async startRecording() {
+                if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
+                    this.showToast('Trình duyệt chưa hỗ trợ ghi âm. Hãy dùng Chrome, Edge hoặc Safari mới.');
+                    return;
+                }
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, channelCount: 1 } });
+                    this.stopPlayback();
+                    this.recordingChunks = [];
+                    this.recognitionText = '';
+                    this.mediaRecorder = new MediaRecorder(stream);
+                    this.mediaRecorder.ondataavailable = e => { if (e.data.size > 0) this.recordingChunks.push(e.data); };
+                    this.mediaRecorder.onstop = () => {
+                        stream.getTracks().forEach(track => track.stop());
+                        const blob = new Blob(this.recordingChunks, { type: this.mediaRecorder.mimeType || 'audio/webm' });
+                        this.recordingBlob = blob;
+                        this.recordingDuration = Math.max(0.1, (Date.now() - this.recordingStartedAt) / 1000);
+                        if (this.recordingUrl) URL.revokeObjectURL(this.recordingUrl);
+                        this.recordingUrl = URL.createObjectURL(blob);
+                        const btn = document.getElementById('playRecordingBtn');
+                        btn.disabled = false;
+                        btn.className = 'px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold transition';
+                        const aiBtn = document.getElementById('aiScoreBtn');
+                        aiBtn.disabled = false;
+                        aiBtn.className = 'px-3 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-semibold transition';
+                        this.showPronunciationResult();
+                    };
+                    this.mediaRecorder.start();
+                    this.recordingStartedAt = Date.now();
+                    this.startRecognition();
+                    const btn = document.getElementById('recordBtn');
+                    btn.innerHTML = '<i class="fa-solid fa-stop mr-1"></i>Dừng ghi âm';
+                    btn.className = 'px-3 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold transition';
+                    document.getElementById('recordingStatus').textContent = 'Đang ghi âm... hãy nói câu hiện tại';
+                    document.getElementById('recordingStatus').className = 'text-[11px] text-rose-200 animate-pulse';
+                } catch (err) {
+                    this.showToast('Không thể truy cập micro. Hãy cấp quyền micro cho trình duyệt rồi thử lại.');
+                }
+            },
+
+            startRecognition() {
+                const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                if (!Recognition) {
+                    this.recognition = null;
+                    return;
+                }
+                const recognition = new Recognition();
+                recognition.lang = 'zh-CN';
+                recognition.continuous = true;
+                recognition.interimResults = false;
+                recognition.onresult = event => {
+                    this.recognitionText = Array.from(event.results).map(r => r[0].transcript).join('');
+                };
+                recognition.onerror = () => {};
+                recognition.onend = () => {
+                    if (this.mediaRecorder?.state === 'recording') { try { recognition.start(); } catch (e) {} }
+                };
+                this.recognition = recognition;
+                try { recognition.start(); } catch (e) {}
+            },
+
+            stopRecording() {
+                if (this.mediaRecorder?.state === 'recording') this.mediaRecorder.stop();
+                if (this.recognition) { try { this.recognition.stop(); } catch (e) {} }
+                const btn = document.getElementById('recordBtn');
+                btn.innerHTML = '<i class="fa-solid fa-microphone mr-1"></i>Bắt đầu ghi âm';
+                btn.className = 'px-3 py-2 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold transition';
+                document.getElementById('recordingStatus').textContent = 'Đã ghi xong';
+                document.getElementById('recordingStatus').className = 'text-[11px] text-emerald-200';
+            },
+
+            playRecording() {
+                if (!this.recordingUrl) return;
+                this.stopPlayback();
+                const audio = new Audio(this.recordingUrl);
+                audio.play();
+            },
+
+            normalizeForComparison(text) {
+                return (text || '').replace(/[，。！？、,.!?;；:“”"'\s]/g, '').toLowerCase();
+            },
+
+            async runAIPronunciationScore() {
+                if (!this.recordingBlob) return this.showToast('Hãy ghi âm một câu trước.');
+                const btn = document.getElementById('aiScoreBtn');
+                const original = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>Đang phân tích...';
+                try {
+                    const target = this.getActiveLesson().dialogue[this.activeSentenceIndex]?.hanzi || '';
+                    const textScore = this.pronunciationScore(target, this.recognitionText);
+                    const targetLength = this.normalizeForComparison(target).length || 1;
+                    const spokenLength = this.normalizeForComparison(this.recognitionText).length;
+                    const completeness = Math.min(100, Math.round((spokenLength / targetLength) * 100));
+                    const expectedSeconds = Math.max(1.5, targetLength * 0.28);
+                    const paceRatio = this.recordingDuration / expectedSeconds;
+                    const paceScore = paceRatio >= 0.65 && paceRatio <= 1.65 ? 100 : Math.max(35, Math.round(100 - Math.abs(paceRatio - 1) * 45));
+                    const overall = Math.round(textScore * 0.6 + completeness * 0.2 + paceScore * 0.2);
+                    let level = overall >= 90 ? 'Xuất sắc' : overall >= 75 ? 'Tốt' : overall >= 60 ? 'Đạt, cần luyện thêm' : 'Cần luyện lại';
+                    const tips = [];
+                    if (textScore < 80) tips.push('nói rõ từng âm tiết và đối chiếu pinyin');
+                    if (paceScore < 80) tips.push('giảm tốc độ, tạo khoảng dừng ở dấu câu');
+                    if (completeness < 90) tips.push('nói đủ toàn bộ câu, không bỏ âm cuối');
+                    if (!tips.length) tips.push('giữ nhịp nói hiện tại và luyện thêm thanh điệu');
+                    const result = document.getElementById('pronunciationResult');
+                    result.classList.remove('hidden');
+                    result.innerHTML = `<div class="flex items-center justify-between gap-3 mb-3"><div><strong class="text-indigo-200"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i>AI chấm điểm tham khảo</strong><p class="text-[11px] text-slate-400 mt-1">Phân tích bản ghi trên thiết bị</p></div><strong class="text-3xl text-indigo-200">${overall}<span class="text-base">/100</span></strong></div><div class="grid grid-cols-3 gap-2 text-center"><div class="rounded-lg bg-white/5 p-2"><b class="text-white">${textScore}%</b><p class="text-[10px] text-slate-400">Độ khớp lời</p></div><div class="rounded-lg bg-white/5 p-2"><b class="text-white">${completeness}%</b><p class="text-[10px] text-slate-400">Độ đầy đủ</p></div><div class="rounded-lg bg-white/5 p-2"><b class="text-white">${paceScore}%</b><p class="text-[10px] text-slate-400">Nhịp nói</p></div></div><p class="mt-3 text-slate-200"><strong>${level}.</strong> Lần sau hãy ${tips.join(', ')}.</p><p class="mt-2 text-[10px] text-slate-500">Điểm AI trong bản HTML độc lập là điểm tham khảo dựa trên nhận dạng tiếng nói và đặc trưng bản ghi; chưa thay thế đánh giá thanh điệu chuyên sâu từ máy chủ chuyên dụng.</p>`;
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = original;
+                }
+            },
+
+            pronunciationScore(target, spoken) {
+                const a = this.normalizeForComparison(target);
+                const b = this.normalizeForComparison(spoken);
+                if (!a || !b) return 0;
+                const matrix = Array.from({ length: a.length + 1 }, () => Array(b.length + 1).fill(0));
+                for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) matrix[i][j] = a[i - 1] === b[j - 1] ? matrix[i - 1][j - 1] + 1 : Math.max(matrix[i - 1][j], matrix[i][j - 1]);
+                return Math.round((matrix[a.length][b.length] / Math.max(a.length, b.length)) * 100);
+            },
+
+            showPronunciationResult() {
+                const result = document.getElementById('pronunciationResult');
+                const target = this.getActiveLesson().dialogue[this.activeSentenceIndex]?.hanzi || '';
+                result.classList.remove('hidden');
+                if (!this.recognitionText) {
+                    result.innerHTML = '<div class="text-amber-200"><i class="fa-solid fa-circle-info mr-1"></i>Đã lưu bản ghi. Trình duyệt chưa nhận được lời nói để chấm tự động; bạn có thể nghe lại và tự đối chiếu.</div>';
+                    return;
+                }
+                const score = this.pronunciationScore(target, this.recognitionText);
+                const color = score >= 85 ? 'emerald' : (score >= 60 ? 'amber' : 'rose');
+                result.innerHTML = `<div class="flex items-center justify-between gap-3"><span class="text-slate-200">Mức độ khớp nhận dạng</span><strong class="text-${color}-300 text-lg">${score}%</strong></div><div class="mt-2 text-slate-300">Câu chuẩn: <span class="font-chinese text-white">${target}</span></div><div class="mt-1 text-slate-300">Nhận dạng: <span class="font-chinese text-white">${this.recognitionText}</span></div><p class="mt-2 text-[11px] text-slate-400">Điểm tham khảo dựa trên phần chữ mà trình duyệt nhận dạng được, không thay thế đánh giá thanh điệu chuyên nghiệp.</p>`;
+            },
+
+            // --- UI UPDATES & PROGRESS TRACKING ---
+            updatePlayButtonUI() {
+                const icon = document.getElementById('mainPlayIcon');
+                if (this.isPlaying) {
+                    icon.className = 'fa-solid fa-pause';
+                } else {
+                    icon.className = 'fa-solid fa-play ml-0.5';
+                }
+            },
+
+            updateAudioProgressUI() {
+                const lesson = this.getActiveLesson();
+                const total = lesson.dialogue.length;
+                const current = this.activeSentenceIndex + 1;
+                const percent = Math.round((current / total) * 100);
+
+                document.getElementById('currentTimeDisplay').textContent = `Câu ${current} / ${total}`;
+                document.getElementById('audioProgressBar').style.width = `${percent}%`;
+            },
+
+            toggleLessonComplete() {
+                const lesson = this.getActiveLesson();
+                lesson.completed = !lesson.completed;
+                if (lesson.completed) this.recordStudyEvent('lesson');
+                this.saveCompletedLessons();
+                this.updateCompleteButtonUI(lesson.completed);
+                this.updateHeaderStats();
+                this.updateStreakDisplay();
+                this.renderLessonList();
+                this.showToast(lesson.completed ? '✅ Đã đánh dấu hoàn thành bài nghe!' : 'Đã bỏ đánh dấu hoàn thành');
+            },
+
+            updateCompleteButtonUI(completed) {
+                const btn = document.getElementById('completeLessonBtn');
+                if (completed) {
+                    btn.className = 'px-3 py-1 rounded-lg bg-emerald-500 text-white font-semibold transition flex items-center gap-1.5 shadow-sm';
+                    btn.innerHTML = `<i class="fa-solid fa-circle-check"></i> <span>Đã hoàn thành</span>`;
+                } else {
+                    btn.className = 'px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white font-medium transition flex items-center gap-1.5';
+                    btn.innerHTML = `<i class="fa-regular fa-circle-check"></i> <span>Đánh dấu đã học</span>`;
+                }
+            },
+
+            updateHeaderStats() {
+                const completedCount = this.lessons.filter(l => l.completed).length;
+                document.getElementById('completedCount').textContent = completedCount;
+                document.getElementById('totalCount').textContent = this.lessons.length;
+            },
+
+            // --- AI LESSON GENERATOR (GEMINI API) ---
+            openAIModal() {
+                document.getElementById('aiModal').classList.remove('hidden');
+            },
+
+            closeAIModal() {
+                document.getElementById('aiModal').classList.add('hidden');
+            },
+
+            async generateLessonWithAI() {
+                const topicInput = document.getElementById('aiTopicInput').value.trim() || 'Giao tiếp tại sân bay';
+                const levelVal = document.getElementById('aiLevelSelect').value;
+                const durationVal = document.getElementById('aiDurationSelect').value;
+
+                const statusEl = document.getElementById('aiLoadingStatus');
+                const submitBtn = document.getElementById('aiGenerateSubmitBtn');
+                statusEl.classList.remove('hidden');
+                submitBtn.disabled = true;
+
+                const levelMap = {
+                    beginner: { badge: 'Sơ cấp • HSK 1-2', order: 2 },
+                    intermediate: { badge: 'Trung cấp • HSK 3-4', order: 4 },
+                    advanced: { badge: 'Cao cấp • HSK 5-6', order: 6 }
+                };
+
+                const finishWithLesson = (generated, sourceLabel) => {
+                    const newId = 'lesson-ai-' + Date.now();
+                    const newLesson = {
+                        id: newId,
+                        orderDifficulty: levelMap[levelVal].order,
+                        level: levelVal,
+                        hskBadge: levelMap[levelVal].badge,
+                        topic: generated.topicCategory || 'Giao tiếp hàng ngày',
+                        durationText: durationVal,
+                        durationCategory: levelVal === 'beginner' ? 'short' : (levelVal === 'advanced' ? 'long' : 'medium'),
+                        titleZh: generated.titleZh,
+                        titleVi: generated.titleVi,
+                        completed: false,
+                        dialogue: generated.dialogue,
+                        vocab: generated.vocab,
+                        quiz: generated.quiz
+                    };
+                    this.lessons.push(newLesson);
+                    this.resetFilter();
+                    this.loadLesson(newId);
+                    this.updateHeaderStats();
+                    this.closeAIModal();
+                    this.showToast(`✨ Đã tạo bài luyện nghe mới (${sourceLabel})!`);
+                };
+
+                const buildOfflineLesson = () => {
+                    const shortTopic = topicInput.slice(0, 24);
+                    return {
+                        titleZh: `关于“${shortTopic}”的练习对话`,
+                        titleVi: `Hội thoại luyện tập về “${topicInput}”`,
+                        topicCategory: 'Giao tiếp hàng ngày',
+                        dialogue: [
+                            { speaker: 'A', hanzi: `你好！今天我们练习关于“${shortTopic}”的对话。`, pinyin: `Nǐ hǎo! Jīntiān wǒmen liànxí guānyú “${shortTopic}” de duìhuà.`, viet: `Xin chào! Hôm nay chúng ta luyện hội thoại về “${topicInput}”.` },
+                            { speaker: 'B', hanzi: '好的。这个话题在生活中很实用，我想多练习几遍。', pinyin: 'Hǎo de. Zhège huàtí zài shēnghuó zhōng hěn shíyòng, wǒ xiǎng duō liànxí jǐ biàn.', viet: 'Được. Chủ đề này rất thực tế trong đời sống, mình muốn luyện thêm vài lần.' },
+                            { speaker: 'A', hanzi: '首先要注意听关键词，然后再跟着说完整的句子。', pinyin: 'Shǒuxiān yào zhùyì tīng guānjiàncí, ránhòu zài gēnzhe shuō wánzhěng de jùzi.', viet: 'Trước hết hãy chú ý nghe từ khóa, sau đó nói lại câu hoàn chỉnh.' },
+                            { speaker: 'B', hanzi: '如果听不懂，可以放慢速度，或者重复听同一句。', pinyin: 'Rúguǒ tīng bù dǒng, kěyǐ fàngmàn sùdù, huòzhě chóngfù tīng tóng yí jù.', viet: 'Nếu nghe chưa hiểu, có thể giảm tốc độ hoặc nghe lại cùng một câu.' },
+                            { speaker: 'A', hanzi: '对，多开口练习会让发音和语感越来越好。', pinyin: 'Duì, duō kāikǒu liànxí huì ràng fāyīn hé yǔgǎn yuèláiyuè hǎo.', viet: 'Đúng, nói nhiều sẽ giúp phát âm và cảm ngữ ngày càng tốt hơn.' },
+                            { speaker: 'B', hanzi: '谢谢你的建议！我们现在开始练习吧。', pinyin: 'Xièxie nǐ de jiànyì! Wǒmen xiànzài kāishǐ liànxí ba.', viet: 'Cảm ơn lời khuyên của bạn! Chúng ta bắt đầu luyện tập nhé.' }
+                        ],
+                        vocab: [
+                            { word: '练习', pinyin: 'liànxí', meaning: 'Luyện tập' },
+                            { word: '话题', pinyin: 'huàtí', meaning: 'Chủ đề' },
+                            { word: '关键词', pinyin: 'guānjiàncí', meaning: 'Từ khóa' },
+                            { word: '速度', pinyin: 'sùdù', meaning: 'Tốc độ' },
+                            { word: '语感', pinyin: 'yǔgǎn', meaning: 'Cảm ngữ' }
+                        ],
+                        quiz: [
+                            {
+                                question: 'Theo hội thoại, khi nghe chưa hiểu nên làm gì?',
+                                options: ['Bỏ qua câu đó', 'Giảm tốc độ hoặc nghe lại cùng một câu', 'Chỉ nhìn bản dịch', 'Tắt phụ đề'],
+                                correctIndex: 1,
+                                explanation: 'Nhân vật B nói có thể giảm tốc độ hoặc nghe lại cùng một câu.'
+                            },
+                            {
+                                question: 'Bài luyện này tập trung vào chủ đề nào?',
+                                options: [topicInput, 'Nấu ăn tại nhà', 'Chơi thể thao', 'Mua vé máy bay'],
+                                correctIndex: 0,
+                                explanation: `Chủ đề được nêu rõ trong hội thoại: ${topicInput}.`
+                            }
+                        ]
+                    };
+                };
+
+                try {
+                    const apiKey = "";
+                    if (!apiKey) {
+                        // Không có API key → tạo bài mẫu ngoại tuyến để app vẫn dùng được
+                        await new Promise(r => setTimeout(r, 600));
+                        finishWithLesson(buildOfflineLesson(), 'mẫu ngoại tuyến');
+                        return;
+                    }
+
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                    const prompt = `Tạo một bài học luyện nghe hội thoại tiếng Trung thực tế về chủ đề: "${topicInput}".
+                    Trình độ: ${levelMap[levelVal].badge}. Thời lượng khoảng ${durationVal} (tạo 6 câu hội thoại tự nhiên).
+                    Yêu cầu trả về đúng định dạng JSON gồm: tiêu đề tiếng Trung, tiêu đề tiếng Việt, danh sách câu thoại (speaker, hanzi, pinyin có dấu thanh điệu chuẩn, viet), danh sách 5 từ vựng quan trọng và 2 câu hỏi trắc nghiệm kiểm tra nghe hiểu.`;
+
+                    const payload = {
+                        contents: [{ parts: [{ text: prompt }] }],
+                        generationConfig: {
+                            responseMimeType: "application/json",
+                            responseSchema: {
+                                type: "OBJECT",
+                                properties: {
+                                    titleZh: { type: "STRING" },
+                                    titleVi: { type: "STRING" },
+                                    topicCategory: { type: "STRING" },
+                                    dialogue: {
+                                        type: "ARRAY",
+                                        items: {
+                                            type: "OBJECT",
+                                            properties: {
+                                                speaker: { type: "STRING" },
+                                                hanzi: { type: "STRING" },
+                                                pinyin: { type: "STRING" },
+                                                viet: { type: "STRING" }
+                                            },
+                                            required: ["speaker", "hanzi", "pinyin", "viet"]
+                                        }
+                                    },
+                                    vocab: {
+                                        type: "ARRAY",
+                                        items: {
+                                            type: "OBJECT",
+                                            properties: {
+                                                word: { type: "STRING" },
+                                                pinyin: { type: "STRING" },
+                                                meaning: { type: "STRING" }
+                                            },
+                                            required: ["word", "pinyin", "meaning"]
+                                        }
+                                    },
+                                    quiz: {
+                                        type: "ARRAY",
+                                        items: {
+                                            type: "OBJECT",
+                                            properties: {
+                                                question: { type: "STRING" },
+                                                options: { type: "ARRAY", items: { type: "STRING" } },
+                                                correctIndex: { type: "INTEGER" },
+                                                explanation: { type: "STRING" }
+                                            },
+                                            required: ["question", "options", "correctIndex", "explanation"]
+                                        }
+                                    }
+                                },
+                                required: ["titleZh", "titleVi", "dialogue", "vocab", "quiz"]
+                            }
+                        }
+                    };
+
+                    const response = await this.fetchWithBackoff(apiUrl, payload);
+                    const data = await response.json();
+                    const rawJson = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                    if (rawJson) {
+                        const generated = JSON.parse(rawJson);
+                        finishWithLesson(generated, 'AI');
+                    } else {
+                        finishWithLesson(buildOfflineLesson(), 'mẫu ngoại tuyến');
+                    }
+                } catch (error) {
+                    try {
+                        finishWithLesson(buildOfflineLesson(), 'mẫu ngoại tuyến');
+                    } catch (e2) {
+                        this.showToast('Không thể tạo bài học lúc này, vui lòng thử lại sau.');
+                    }
+                } finally {
+                    statusEl.classList.add('hidden');
+                    submitBtn.disabled = false;
+                }
+            },
+
+            async fetchWithBackoff(url, payload, retries = 3) {
+                let delay = 1000;
+                for (let i = 0; i < retries; i++) {
+                    try {
+                        const res = await fetch(url, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        if (res.ok) return res;
+                    } catch (e) {}
+                    await new Promise(r => setTimeout(r, delay));
+                    delay *= 2;
+                }
+                throw new Error('API request failed');
+            },
+
+            showToast(msg) {
+                const box = document.getElementById('toastBox');
+                document.getElementById('toastMessage').textContent = msg;
+                box.classList.remove('hidden');
+                clearTimeout(this.toastTimer);
+                this.toastTimer = setTimeout(() => {
+                    box.classList.add('hidden');
+                }, 3200);
+            }
+        };
+
+        window.onload = () => app.init();
+    </script>
+</body>
+</html>
